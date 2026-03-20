@@ -1,120 +1,219 @@
-# Orderly - Customer Ordering UI Prototype
+# Orderly — UI Prototypes
 
-A fully interactive front-end prototype for Orderly's voice-first restaurant ordering experience. Single HTML file, zero dependencies, works in any browser.
+Two fully interactive prototypes for Orderly's voice-first restaurant ordering platform. Customer-facing ordering app + restaurant management dashboard. Zero frameworks, zero build steps, just open in a browser.
 
-## What is this
+## Quick Start
 
-An interactive mockup of the customer-facing ordering app that loads when someone scans a QR code at a restaurant table. Built as a design reference and demo tool for pitching to restaurants.
+```bash
+# That's it. No install needed.
+open index.html        # Customer ordering prototype
+open dashboard.html    # Restaurant dashboard
+```
 
-## Features
+Or deploy to any static host (GitHub Pages, Vercel, Netlify) and share URLs.
 
-- **Home screen** with time-aware greeting, animated logo, rotating AI prompt suggestions
-- **Voice ordering** with live waveform bar, mute toggle, real-time transcript, end session
-- **Text chat** with AI responses, keyword detection, inline "Add to cart" buttons
-- **Menu browsing** with category filtering, drag-scrollable category pills, food photos
-- **Item detail sheet** with modifier toggles, special instructions input, quantity selector
-- **Cart** with draggable bottom drawer (snap to half/full screen), quantity controls, remove items
-- **Tip selector** (None / 15% / 18% / 20%) with live total updates
-- **Order confirmation** screen with animated checkmark, itemized receipt, order number
-- **Order tracking** with animated 4-step timeline (Ordered > Kitchen received > Preparing > Served)
-- **Queue position** display (your order is Xth in line, X queued / X preparing / X served)
-- **Order more** button to add additional rounds without re-scanning
-- **Account system** with guest state, signup flow, and full settings editing:
-  - Profile (name, contact)
-  - Allergies (8 options, toggle on/off)
-  - Dietary preferences (8 options)
-  - Custom notes (free text)
-  - Language selection (8 languages)
-  - Order history link
-  - Sign out / Delete data
-- **Light / Dark / System theme** switching with full color coverage
-- **Allergen/dietary tags** on menu items (Popular, Vegetarian, Gluten-free, Spicy, etc.)
-- **Responsive** - strips phone frame on real mobile devices (under 420px width)
+---
+
+## Files
+
+```
+index.html           Customer-facing ordering app (1,769 lines)
+dashboard.html       Restaurant management dashboard (2,114 lines)
+README.md            This file
+```
 
 ## Dependencies
 
-**None.** This is a single self-contained HTML file with inline CSS and JavaScript. No build step, no npm, no frameworks.
+### Customer Prototype (`index.html`)
+| Dependency | Type | Required | Fallback |
+|---|---|---|---|
+| Unsplash | Image URLs | No | Colored gradient placeholders via `onerror` |
 
-The only external resources are Unsplash image URLs for food photos. These are optional - every image has an `onerror` fallback that shows a colored gradient placeholder if images fail to load. The prototype works fully offline except for the photos.
+**That's it.** System fonts (`-apple-system`), vanilla JS, inline CSS. Works offline.
 
-## How to run
+### Dashboard (`dashboard.html`)
+| Dependency | Type | Required | Fallback |
+|---|---|---|---|
+| Google Fonts (DM Sans) | CDN stylesheet | No | System sans-serif |
+| Unsplash | Image URLs | No | Colored gradient placeholders via `onerror` |
+| Web Audio API | Browser built-in | No | Silent (try/catch wrapped) |
 
-Open `index.html` in any browser. That's it.
+**No npm. No node_modules. No build step. No React/Vue/Angular.**
 
-To test on a real phone: host the file anywhere (GitHub Pages, Vercel, Netlify, or even `python3 -m http.server`) and open the URL on your phone. The responsive layout strips the phone frame and renders full-screen.
+---
 
-## How to customize for a different restaurant
+## Customer Prototype — Architecture
 
-Edit the `RESTAURANT` config object at the top of the `<script>` section:
+### Config
+Everything restaurant-specific is in one object at the top of the `<script>`:
 
 ```javascript
 const RESTAURANT = {
-  name: 'A1 Snacks',       // Restaurant name (shows in header + home)
-  table: 'Table 1',         // Table identifier
-  hours: 'Open until 10 PM', // Operating hours display
-  accent: '#e8650a',        // Brand color (orange by default)
-  currency: '$',             // Currency symbol (USD, PHP, AED, etc.)
-  taxRate: 0.08,            // Tax rate (8% default)
+  name: 'A1 Snacks',
+  table: 'Table 1',
+  hours: 'Open until 10 PM',
+  accent: '#e8650a',
+  currency: '$',      // Change to PHP for Philippines, AED for Dubai
+  taxRate: 0.08,
 };
 ```
 
-To change the menu, edit the `menuData` object below the config. Each item has:
-
+### Menu Data
+`menuData` object below the config. Each item:
 ```javascript
 {
-  id: 'b1',                    // Unique ID
-  name: 'Classic Burger',      // Display name
-  desc: 'Description text',    // Short description
-  price: 12.99,               // Price (in restaurant's currency)
-  css: 'food-burger',         // CSS class for gradient fallback color
-  tags: ['P', 'GF'],          // Dietary/allergen tags
-  img: 'https://...'          // Image URL (optional, has fallback)
+  id: 'b1',
+  name: 'Classic Burger',
+  desc: 'Description',
+  price: 12.99,
+  css: 'food-burger',           // CSS class for gradient fallback color
+  tags: ['P', 'GF'],            // V, VG, GF, DF, NF, S, P, N
+  img: 'https://unsplash...',   // Optional, has onerror fallback
 }
 ```
 
-Available tags: `V` (Vegetarian), `VG` (Vegan), `GF` (Gluten-free), `DF` (Dairy-free), `NF` (Nut-free), `S` (Spicy), `P` (Popular), `N` (New)
+### Voice AI Integration Points
+Search for `VOICE AI INTEGRATION` or `goVoice()` in the source:
 
-## Voice AI integration
+```javascript
+// Called when user taps "Start Voice Order"
+function goVoice() {
+  // >>> INIT YOUR SDK HERE (VAPI, Deepgram, etc.) <<<
+  // The demo uses setTimeout to simulate - replace with real callbacks
+}
 
-The prototype includes placeholder code for voice AI integration. Search for `VOICE AI INTEGRATION` in the source to find the hook points:
-
-- `goVoice()` - Initialize your voice SDK (VAPI, Deepgram, etc.)
-- `addItemToCart(item)` - Call when AI detects an order item
-- `updateTranscript(text)` - Call with live speech-to-text output
-- `toggleMute()` - Pause/resume voice stream
-- `exitVoice()` - Disconnect SDK and return to default bar
-
-The demo simulates AI behavior with setTimeout - replace those with real SDK callbacks.
-
-## File structure
-
-```
-orderly-prototype/
-  index.html      # The entire prototype (single file)
-  README.md       # This file
+// Call these from your SDK callbacks:
+addItemToCart(item)       // When AI detects an order item
+updateTranscript(text)    // Live speech-to-text output
+toggleMute()              // Pause/resume
+exitVoice()               // End session, return to default bar
 ```
 
-## Tech stack
+### Features
+- Homescreen: time-aware greeting, animated logo, rotating AI prompt suggestions
+- Voice ordering: waveform bar, mute, live transcript, end session
+- Text chat: keyword-matched AI responses with inline "Add to cart" buttons
+- Menu: category pills, dietary filter (GF/V/VG/DF/NF/S), food photos, allergen tags
+- Item detail: bottom sheet with 8 modifier toggles, special instructions, quantity
+- Cart: draggable drawer, auto-scale by item count, tip selector (0/15/18/20%)
+- Order confirmation: animated checkmark, itemized receipt, order number
+- Order tracking: animated 4-step timeline, queue position display, "Order more" button
+- Account: guest signup, editable profile (allergies, diet, notes, language)
+- Themes: light/dark/system with full color coverage
+- Responsive: strips phone frame on real devices (under 420px)
 
-- HTML5
-- CSS3 (no preprocessor)
-- Vanilla JavaScript (no libraries)
-- Unsplash (image URLs only, with fallbacks)
+### Responsive Behavior
+- Desktop: renders inside a 375px phone frame for demos
+- Mobile (under 420px): phone frame removed, full-screen rendering, 100dvh height
+- iOS safe areas supported via env(safe-area-inset-*)
 
-## Browser support
+---
 
-- Safari iOS 15+
-- Chrome Android 8+
-- All modern desktop browsers
-- Responsive layout for screens under 420px
+## Dashboard — Architecture
 
-## GitHub Pages deployment
+### Pages (9)
+| Page | Description |
+|---|---|
+| **Orders** | Kanban board (New, Accepted, Preparing, Ready, Served), drag-drop, detail modal, one-tap advance |
+| **86 Board** | Items grouped by category, toggle on/off, time-since-86'd, sort/filter |
+| **Menu** | Full CRUD: add/edit/delete items with modifiers, allergens, tags, image URL |
+| **Tables** | Grid with status (empty/occupied/waiting), add/remove tables, detail panel |
+| **Analytics** | Heatmap, hot sellers/underperformers, repeat customer favorites, customer insights, order method breakdown, date range filter |
+| **History** | Searchable/filterable order history, expandable details, aggregate stats, CSV export |
+| **QR Codes** | Per-table QR generation (SVG), copy URL, print |
+| **Billing** | Plan details, usage stats (voice/text/browse breakdown), invoice history |
+| **Settings** | Profile, hours, branding, tax rate, notifications, integrations, staff PINs, danger zone |
 
-1. Push to a GitHub repo
-2. Go to Settings > Pages
-3. Set source to main branch, root folder
-4. Your prototype will be live at `https://yourusername.github.io/repo-name/`
+### Key Features
+- **Live demo mode**: Press D or tap "Demo" to auto-simulate a dinner rush
+- **Sound alerts**: Web Audio API chime on new orders (toggle on/off)
+- **Notification banner**: Slides down when new orders arrive
+- **Print receipt**: Opens formatted kitchen ticket in new window
+- **Theme toggle**: Light/dark mode via top bar
+- **Confirmation dialogs**: For destructive actions (decline, delete, close table)
+- **Action toasts**: Every action shows feedback ("Order accepted", "Item 86'd", etc.)
+- **Skeleton loading**: Page transitions shimmer briefly
+- **Mobile responsive**: Sidebar collapses on tablets, orders switch to stacked card list on phones
+- **iOS/iPad optimized**: Safe areas, touch targets, momentum scrolling
 
-## License
+### Keyboard Shortcuts
+| Key | Action |
+|---|---|
+| N | Simulate new order |
+| D | Toggle demo mode |
+| Escape | Close any modal + stop demo |
 
-Built as a UI/UX reference for Orderly AI. Internal use.
+### Demo Data
+4 pre-loaded orders in different stages, 15 menu items with photos, 12 tables, 12 past orders in history. All data is in-memory JS, no persistence, resets on refresh.
+
+---
+
+## For Production — What Needs to Change
+
+These prototypes are **design references**, not production code. Here's what needs to be swapped out:
+
+### Customer App
+1. **Voice SDK**: Replace the setTimeout demo in goVoice() with VAPI/Deepgram/AssemblyAI
+2. **Backend API**: Menu data should load from your API, not the hardcoded menuData object
+3. **Order submission**: placeOrder() currently moves items to orderedItems array. Wire to order API
+4. **Order tracking**: Timeline is demo-animated. Replace with websocket/polling from kitchen status
+5. **Account system**: userProfile is in-memory JS. Needs auth backend (magic link/SMS)
+6. **Real images**: Replace Unsplash URLs with restaurant's actual food photos
+
+### Dashboard
+1. **Auth**: No login. Needs auth middleware
+2. **Real-time orders**: Replace demo data with websocket connection to order stream
+3. **Database**: All data is in-memory arrays. Needs Postgres/Supabase/Firebase
+4. **86 Board sync**: Toggle state needs to propagate to customer-facing menu in real-time
+5. **Analytics**: Static demo data. Needs actual order aggregation queries
+6. **QR codes**: SVG placeholders. Use a real QR library (qrcode.js) with actual URLs
+7. **Payments/Billing**: Static mockup. Needs Stripe integration
+8. **File upload**: "Import PDF" is a toast placeholder. Needs OCR pipeline for menu extraction
+
+### What You Can Keep
+- All CSS and layout: production-ready responsive design
+- Component structure: every UI component maps to a real feature
+- Data shapes: the JS objects mirror what your API responses should look like
+- UX flows: every interaction has been thought through
+
+---
+
+## Deploying to GitHub Pages
+
+```bash
+git init
+git add index.html dashboard.html README.md
+git commit -m "Orderly prototypes"
+git remote add origin https://github.com/YOUR_USERNAME/orderly-prototype.git
+git push -u origin main
+```
+
+Then: Settings, Pages, Source: main branch, Save
+
+- Customer app: https://YOUR_USERNAME.github.io/orderly-prototype/
+- Dashboard: https://YOUR_USERNAME.github.io/orderly-prototype/dashboard.html
+
+---
+
+## Browser Support
+- Chrome 90+, Safari 15+, Firefox 90+, Edge 90+
+- iOS Safari (iPhone + iPad)
+- Android Chrome
+- Tablet-optimized (iPad landscape/portrait)
+
+---
+
+## Demo Script for Restaurant Pitches
+
+1. Open dashboard.html on a laptop
+2. Press D to start demo mode. Orders start flowing in
+3. Walk through: accept an order, start prep, mark ready, served
+4. Show 86 Board: toggle an item off
+5. Show Analytics: heatmap, hot sellers, customer insights
+6. Switch to index.html on a phone
+7. Tap "Start Voice Order": demo AI adds items automatically
+8. Browse menu: show dietary filters, item detail sheet
+9. Place order: show confirmation screen and order tracking
+10. Show Account page: allergies, dietary preferences
+
+Total demo time: roughly 3 minutes. Covers the full product story.

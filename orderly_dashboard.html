@@ -1,0 +1,2114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Orderly Dashboard – Restaurant Management</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--bg:#0b0f14;--bg2:#111820;--bg3:#161e28;--bg4:#1c2632;--border:#1e2a36;--border2:#263342;--text:#e2e6ea;--text2:#8a96a4;--text3:#5a6878;--accent:#e8650a;--accent2:#f07a22;--green:#22c55e;--yellow:#eab308;--red:#ef4444;--blue:#3b82f6;--purple:#a855f7;--sidebar:220px;--header:60px}
+body.light{--bg:#f5f5f7;--bg2:#ffffff;--bg3:#eeeef0;--bg4:#e4e4e8;--border:#dddde0;--border2:#d0d0d4;--text:#1a1a1e;--text2:#6a6a72;--text3:#8a8a92;--accent:#e8650a;--accent2:#f07a22}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;display:flex;min-height:100vh;overflow:hidden;transition:background 0.3s,color 0.3s}
+
+/* Skeleton loading shimmer */
+.skeleton{position:relative;overflow:hidden}
+.skeleton::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.04),transparent);animation:shimmer 1.5s infinite}
+@keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+.page-loading{opacity:0.5;pointer-events:none}
+.page-loading .an-card,.page-loading .order-card,.page-loading .e86-item,.page-loading .table-card,.page-loading .ci-card{background:var(--bg3)}
+
+/* Mobile orders list */
+.mobile-orders{display:none;flex-direction:column;gap:8px;padding:12px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.mo-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px;display:flex;align-items:flex-start;gap:12px}
+.mo-status-bar{width:4px;border-radius:2px;align-self:stretch;flex-shrink:0}
+.mo-content{flex:1;min-width:0}
+.mo-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.mo-table{font-size:15px;font-weight:700}
+.mo-time{font-size:12px;font-weight:600;padding:3px 8px;border-radius:6px}
+.mo-items-text{font-size:12px;color:var(--text2);margin-bottom:8px;line-height:1.4}
+.mo-actions{display:flex;gap:6px}
+.mo-btn{height:34px;padding:0 14px;border-radius:8px;border:none;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit}
+.mo-btn.primary{background:var(--accent);color:white}
+.mo-btn.secondary{background:var(--bg3);color:var(--text2);border:1px solid var(--border)}
+
+/* Theme toggle */
+.tb-theme{display:flex;align-items:center;gap:0;background:var(--bg3);border-radius:8px;border:1px solid var(--border);overflow:hidden}
+.tb-theme-opt{width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.15s}
+.tb-theme-opt:hover{background:var(--bg4)}
+.tb-theme-opt.active{background:var(--accent);color:white}
+.tb-theme-opt.active svg{stroke:white}
+
+/* Live demo mode */
+.demo-active{animation:demoPulse 2s infinite}
+@keyframes demoPulse{0%,100%{box-shadow:0 0 0 0 rgba(232,101,10,0)}50%{box-shadow:0 0 0 4px rgba(232,101,10,0.3)}}
+
+/* SIDEBAR */
+.sidebar{width:var(--sidebar);background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;position:fixed;top:0;left:0;bottom:0;z-index:10}
+.sb-brand{padding:18px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border)}
+.sb-logo{width:36px;height:36px;border-radius:10px;background:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sb-name{font-size:16px;font-weight:700;color:var(--text);letter-spacing:-0.3px}
+.sb-badge{font-size:9px;background:var(--accent);color:white;padding:2px 6px;border-radius:4px;font-weight:600;margin-left:auto}
+.sb-nav{flex:1;padding:14px 10px;display:flex;flex-direction:column;gap:2px}
+.sb-item{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:10px;cursor:pointer;transition:all 0.15s;color:var(--text2);font-size:14px;font-weight:500;position:relative}
+.sb-item:hover{background:var(--bg3);color:var(--text)}
+.sb-item.active{background:var(--accent)12;color:var(--accent);font-weight:600}
+.sb-item.active::before{content:'';position:absolute;left:0;top:8px;bottom:8px;width:3px;border-radius:0 3px 3px 0;background:var(--accent)}
+.sb-item svg{width:20px;height:20px;flex-shrink:0}
+.sb-alert{width:8px;height:8px;border-radius:50%;background:var(--red);margin-left:auto;animation:pulse 1.5s infinite}
+.sb-count{font-size:11px;background:var(--bg4);padding:2px 8px;border-radius:6px;margin-left:auto;color:var(--text2)}
+.sb-divider{height:1px;background:var(--border);margin:8px 14px}
+.sb-bottom{padding:14px 10px;border-top:1px solid var(--border)}
+.sb-bottom .sb-item{font-size:13px;padding:8px 14px}
+
+/* MAIN AREA */
+.main{margin-left:var(--sidebar);flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden}
+
+/* HEADER */
+.top-bar{height:var(--header);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:16px;flex-shrink:0;background:var(--bg)}
+.tb-title{font-size:18px;font-weight:700;letter-spacing:-0.3px}
+.tb-spacer{flex:1}
+.tb-stat{display:flex;flex-direction:column;align-items:center;padding:0 16px;border-left:1px solid var(--border)}
+.tb-stat:first-of-type{border-left:none}
+.tb-stat-val{font-size:18px;font-weight:700;color:var(--text);line-height:1}
+.tb-stat-label{font-size:10px;color:var(--text3);margin-top:3px;text-transform:uppercase;letter-spacing:0.5px}
+.tb-stat-val.green{color:var(--green)}
+.tb-stat-val.accent{color:var(--accent)}
+.tb-clock{font-size:14px;color:var(--text2);font-variant-numeric:tabular-nums;padding-left:16px;border-left:1px solid var(--border)}
+.tb-alert-btn{width:36px;height:36px;border-radius:10px;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative}
+.tb-alert-btn:hover{background:var(--bg4)}
+.tb-alert-dot{position:absolute;top:6px;right:6px;width:7px;height:7px;border-radius:50%;background:var(--red)}
+
+/* CONTENT */
+.content{flex:1;overflow:hidden;display:flex;flex-direction:column}
+.page{display:none;flex:1;overflow:auto;padding:24px}
+.page.active{display:flex;flex-direction:column}
+
+/* ====== ORDERS PAGE ====== */
+.orders-page{flex-direction:row;gap:0;padding:0;overflow:hidden}
+.kanban{display:flex;flex:1;overflow-x:auto;gap:1px;background:var(--border)}
+.kanban-col{flex:1;min-width:240px;background:var(--bg);display:flex;flex-direction:column;overflow:hidden}
+.kc-header{padding:14px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);flex-shrink:0}
+.kc-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.kc-title{font-size:13px;font-weight:600;flex:1}
+.kc-count{font-size:12px;color:var(--text3);background:var(--bg3);padding:2px 8px;border-radius:6px}
+.kc-body{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:8px}
+.kc-body::-webkit-scrollbar{width:4px}
+.kc-body::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.kc-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;color:var(--text3);font-size:13px;gap:8px;padding:20px}
+
+/* ORDER CARD */
+.order-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px;cursor:default;transition:border-color 0.2s}
+.order-card:hover{border-color:var(--border2)}
+.oc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.oc-table{font-size:15px;font-weight:700;color:var(--text)}
+.oc-time{font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px;font-variant-numeric:tabular-nums}
+.oc-time.fresh{background:#22c55e18;color:var(--green)}
+.oc-time.warm{background:#eab30818;color:var(--yellow)}
+.oc-time.hot{background:#ef444418;color:var(--red)}
+.oc-items{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+.oc-item{font-size:12px;color:var(--text2);display:flex;gap:6px}
+.oc-item-qty{color:var(--accent);font-weight:600;min-width:16px}
+.oc-item-mod{color:var(--text3);font-style:italic;margin-left:4px}
+.oc-actions{display:flex;gap:6px}
+.oc-action{flex:1;height:32px;border-radius:8px;border:none;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.15s;display:flex;align-items:center;justify-content:center;gap:4px}
+.oc-action:active{transform:scale(0.96)}
+.oc-action.primary{background:var(--accent);color:white}
+.oc-action.primary:hover{background:var(--accent2)}
+.oc-action.secondary{background:var(--bg3);color:var(--text2);border:1px solid var(--border)}
+.oc-action.secondary:hover{background:var(--bg4)}
+.oc-order-num{font-size:10px;color:var(--text3);margin-bottom:4px}
+.oc-special{font-size:11px;color:var(--yellow);background:#eab30810;padding:4px 8px;border-radius:6px;margin-bottom:8px;display:flex;align-items:center;gap:4px}
+
+/* ====== 86 BOARD ====== */
+.e86-controls{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.e86-stats{display:flex;gap:10px;margin-bottom:20px}
+.e86-stat{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:10px 18px;display:flex;align-items:center;gap:10px}
+.e86-stat-dot{width:10px;height:10px;border-radius:50%}
+.e86-stat-val{font-size:16px;font-weight:700}
+.e86-stat-label{font-size:12px;color:var(--text3)}
+.e86-group{margin-bottom:24px}
+.e86-group-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.e86-group-name{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text2)}
+.e86-group-count{font-size:11px;color:var(--text3);background:var(--bg3);padding:2px 8px;border-radius:4px}
+.e86-group-86{font-size:11px;color:var(--red);margin-left:auto;font-weight:600}
+.e86-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px}
+.e86-item{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:12px;transition:all 0.15s}
+.e86-item:hover{border-color:var(--border2)}
+.e86-item.off{border-color:var(--red)33;background:var(--red)06}
+.e86-item-img{width:44px;height:44px;border-radius:8px;overflow:hidden;flex-shrink:0;background:var(--bg3);display:flex;align-items:center;justify-content:center}
+.e86-item-img img{width:100%;height:100%;object-fit:cover}
+.e86-item-info{flex:1;min-width:0}
+.e86-item-name{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.e86-item-meta{font-size:11px;color:var(--text3);display:flex;gap:6px;align-items:center;margin-top:2px}
+.e86-item-price{font-weight:500}
+.e86-item-time{color:var(--red);font-weight:600}
+.e86-toggle{width:48px;height:28px;border-radius:14px;background:var(--green);border:none;cursor:pointer;position:relative;flex-shrink:0;transition:background 0.25s;-webkit-tap-highlight-color:transparent}
+.e86-toggle.off{background:var(--red)}
+.e86-toggle::after{content:'';position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:white;transition:transform 0.25s;box-shadow:0 1px 3px rgba(0,0,0,0.3)}
+.e86-toggle.off::after{transform:translateX(20px)}
+
+/* ====== MENU PAGE ====== */
+.menu-header{display:flex;align-items:center;gap:16px;margin-bottom:20px}
+.menu-search{flex:1;height:40px;border-radius:10px;border:1px solid var(--border);background:var(--bg2);padding:0 14px;font-size:14px;color:var(--text);outline:none;font-family:inherit}
+.menu-search:focus{border-color:var(--accent)}
+.menu-search::placeholder{color:var(--text3)}
+.menu-add-btn{height:40px;padding:0 20px;border-radius:10px;background:var(--accent);border:none;color:white;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px}
+.menu-add-btn:hover{background:var(--accent2)}
+.menu-cats{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.menu-cat{padding:6px 16px;border-radius:8px;font-size:13px;cursor:pointer;transition:all 0.15s;border:1px solid var(--border);color:var(--text2);background:transparent}
+.menu-cat:hover{background:var(--bg3)}
+.menu-cat.active{background:var(--accent)12;border-color:var(--accent)44;color:var(--accent);font-weight:600}
+.menu-table{width:100%;border-collapse:collapse}
+.menu-table th{text-align:left;padding:10px 14px;font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid var(--border);font-weight:600}
+.menu-table td{padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle}
+.menu-table tr:hover td{background:var(--bg2)}
+.mt-item{display:flex;align-items:center;gap:10px}
+.mt-img{width:36px;height:36px;border-radius:8px;overflow:hidden;flex-shrink:0;background:var(--bg3)}
+.mt-img img{width:100%;height:100%;object-fit:cover}
+.mt-name{font-weight:600}
+.mt-desc{font-size:11px;color:var(--text3);margin-top:1px}
+.mt-tag{font-size:10px;padding:2px 8px;border-radius:4px;font-weight:600}
+.mt-actions{display:flex;gap:6px}
+.mt-btn{width:30px;height:30px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text2);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.mt-btn:hover{background:var(--bg3)}
+
+/* ====== TABLES PAGE ====== */
+.tables-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-top:16px}
+.table-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center;cursor:pointer;transition:all 0.15s}
+.table-card:hover{border-color:var(--border2)}
+.table-card.occupied{border-color:var(--green)44}
+.table-card.waiting{border-color:var(--yellow)44;animation:waitPulse 2s infinite}
+@keyframes waitPulse{0%,100%{box-shadow:0 0 0 0 #eab30800}50%{box-shadow:0 0 0 6px #eab30822}}
+.tc-number{font-size:24px;font-weight:700;margin-bottom:4px}
+.tc-status{font-size:12px;font-weight:500;padding:3px 10px;border-radius:6px;display:inline-block}
+.tc-status.empty{background:var(--bg3);color:var(--text3)}
+.tc-status.occupied{background:#22c55e18;color:var(--green)}
+.tc-status.waiting{background:#eab30818;color:var(--yellow)}
+.tc-info{font-size:11px;color:var(--text3);margin-top:6px}
+.tc-items{font-size:11px;color:var(--text2);margin-top:4px}
+
+/* ====== SETTINGS PAGE ====== */
+.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.settings-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px}
+.sc-title{font-size:14px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.sc-field{margin-bottom:14px}
+.sc-label{font-size:11px;color:var(--text3);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.3px;font-weight:500}
+.sc-input{width:100%;height:40px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);padding:0 12px;font-size:14px;color:var(--text);outline:none;font-family:inherit}
+.sc-input:focus{border-color:var(--accent)}
+.sc-save{height:36px;padding:0 20px;border-radius:8px;background:var(--accent);border:none;color:white;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:4px}
+.sc-save:hover{background:var(--accent2)}
+.sc-color-row{display:flex;align-items:center;gap:10px}
+.sc-color{width:36px;height:36px;border-radius:8px;border:2px solid var(--border);cursor:pointer}
+
+/* ====== ANALYTICS PAGE ====== */
+.analytics-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.an-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px}
+.an-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px}
+.an-val{font-size:28px;font-weight:700;letter-spacing:-0.5px}
+.an-sub{font-size:12px;color:var(--text3);margin-top:4px}
+.an-chart{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px}
+.an-chart-title{font-size:14px;font-weight:600;margin-bottom:16px}
+.an-bars{display:flex;align-items:flex-end;gap:6px;height:140px}
+.an-bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.an-bar{width:100%;border-radius:4px 4px 0 0;background:var(--accent);min-height:4px;transition:height 0.5s}
+.an-bar-label{font-size:10px;color:var(--text3)}
+.an-pop-list{display:flex;flex-direction:column;gap:8px}
+.an-pop-item{display:flex;align-items:center;gap:12px;padding:8px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:10px}
+.an-pop-rank{font-size:14px;font-weight:700;color:var(--accent);min-width:24px}
+.an-pop-name{font-size:13px;font-weight:600;flex:1}
+.an-pop-count{font-size:12px;color:var(--text3)}
+
+/* Heatmap */
+.heatmap{display:grid;grid-template-columns:40px repeat(14,1fr);gap:2px;font-size:10px}
+.hm-label{display:flex;align-items:center;color:var(--text3);font-weight:500}
+.hm-col-label{text-align:center;color:var(--text3);font-weight:500;padding:0 0 4px}
+.hm-cell{aspect-ratio:1;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:transparent;transition:all 0.15s;cursor:default}
+.hm-cell:hover{color:white;transform:scale(1.1)}
+.hm-0{background:var(--bg3)}
+.hm-1{background:#e8650a22}
+.hm-2{background:#e8650a44}
+.hm-3{background:#e8650a77}
+.hm-4{background:#e8650aaa}
+.hm-5{background:#e8650a}
+
+/* Customer insights */
+.ci-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px;display:flex;align-items:center;gap:12px}
+.ci-avatar{width:40px;height:40px;border-radius:50%;background:var(--bg4);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:var(--accent);flex-shrink:0}
+.ci-info{flex:1;min-width:0}
+.ci-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ci-meta{font-size:11px;color:var(--text3);margin-top:2px}
+.ci-stat{text-align:right;flex-shrink:0}
+.ci-stat-val{font-size:14px;font-weight:700}
+.ci-stat-label{font-size:10px;color:var(--text3)}
+
+/* Item performance */
+.ip-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)0d}
+.ip-row:last-child{border-bottom:none}
+.ip-rank{font-size:14px;font-weight:700;min-width:24px;text-align:center}
+.ip-name{font-size:13px;font-weight:600;flex:1}
+.ip-bar-wrap{width:100px;height:8px;border-radius:4px;background:var(--bg3);overflow:hidden;flex-shrink:0}
+.ip-bar{height:100%;border-radius:4px}
+.ip-val{font-size:12px;color:var(--text2);min-width:50px;text-align:right}
+.ip-trend{font-size:11px;font-weight:600;min-width:40px;text-align:right}
+
+/* SCROLLBAR */
+.page::-webkit-scrollbar{width:6px}
+.page::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* PULSE */
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.new-flash{animation:newFlash 0.5s ease}
+@keyframes newFlash{0%{background:var(--accent)22}100%{background:var(--bg2)}}
+
+/* SIMULATE + AUDIO TOGGLE */
+.tb-btn{height:36px;padding:0 14px;border-radius:10px;border:1px solid var(--border);background:var(--bg3);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px;transition:all 0.15s;white-space:nowrap}
+.tb-btn:hover{background:var(--bg4);color:var(--text)}
+.tb-btn.accent{background:var(--accent);border-color:var(--accent);color:white}
+.tb-btn.accent:hover{background:var(--accent2)}
+.tb-audio{position:relative}
+.tb-audio.muted svg{opacity:0.4}
+.tb-audio.muted::after{content:'';position:absolute;top:50%;left:50%;width:24px;height:2px;background:var(--red);transform:translate(-50%,-50%) rotate(-45deg);border-radius:1px}
+
+/* NEW ORDER FLASH */
+.kc-flash{animation:colFlash 1s ease}
+@keyframes colFlash{0%,50%{background:var(--accent)15}100%{background:var(--bg)}}
+
+/* DRAG AND DROP */
+.order-card{cursor:grab}
+.order-card.dragging{opacity:0.5;cursor:grabbing;transform:rotate(2deg)}
+.kc-body.drag-over{background:var(--accent)08;outline:2px dashed var(--accent)44;outline-offset:-4px;border-radius:8px}
+
+/* ORDER DETAIL MODAL */
+.od-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:100;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.od-overlay.open{display:flex}
+.od-modal{background:var(--bg2);border:1px solid var(--border);border-radius:16px;width:480px;max-width:90vw;max-height:85vh;overflow:hidden;display:flex;flex-direction:column;animation:modalIn 0.25s cubic-bezier(0.34,1.56,0.64,1)}
+@keyframes modalIn{0%{transform:scale(0.9);opacity:0}100%{transform:scale(1);opacity:1}}
+.od-header{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.od-title{font-size:18px;font-weight:700}
+.od-close{width:32px;height:32px;border-radius:8px;background:var(--bg3);display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;color:var(--text2)}
+.od-close:hover{background:var(--bg4)}
+.od-body{padding:20px;overflow-y:auto;flex:1}
+.od-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)}
+.od-row:last-child{border-bottom:none}
+.od-row-label{font-size:13px;color:var(--text3)}
+.od-row-val{font-size:13px;font-weight:600;color:var(--text)}
+.od-section{margin-top:16px}
+.od-section-title{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;font-weight:600}
+.od-item{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)0d}
+.od-item:last-child{border-bottom:none}
+.od-item-qty{font-size:13px;font-weight:700;color:var(--accent);min-width:24px}
+.od-item-name{font-size:13px;font-weight:600;color:var(--text)}
+.od-item-mod{font-size:12px;color:var(--text3);font-style:italic}
+.od-item-price{margin-left:auto;font-size:13px;color:var(--text2)}
+.od-special-box{background:var(--yellow)10;border:1px solid var(--yellow)33;border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:8px;margin-top:12px;font-size:13px;color:var(--yellow)}
+.od-footer{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px}
+.od-footer .oc-action{height:40px;font-size:14px;border-radius:10px}
+
+/* TABLET RESPONSIVE + iOS/iPad */
+.sb-toggle{display:none;width:44px;height:44px;border-radius:10px;background:var(--bg3);border:1px solid var(--border);align-items:center;justify-content:center;cursor:pointer;color:var(--text2);flex-shrink:0;-webkit-tap-highlight-color:transparent}
+
+/* iPad landscape + smaller desktops */
+@media(max-width:1100px){
+  :root{--sidebar:200px}
+  .sb-name{font-size:14px}
+  .sb-item{font-size:13px;padding:9px 12px}
+  .kanban-col{min-width:220px}
+}
+
+/* iPad portrait + tablets */
+@media(max-width:900px){
+  .sidebar{transform:translateX(-100%);transition:transform 0.3s ease;z-index:20;width:260px}
+  .sidebar.open{transform:translateX(0)}
+  .sb-toggle{display:flex}
+  .main{margin-left:0}
+  .kanban-col{min-width:200px}
+  .analytics-grid{grid-template-columns:repeat(2,1fr)}
+  .settings-grid{grid-template-columns:1fr}
+  .billing-grid{grid-template-columns:1fr}
+  .e86-list{grid-template-columns:repeat(auto-fill,minmax(240px,1fr))}
+  .od-modal,.td-modal{width:90vw;max-width:480px}
+  .mi-modal{width:90vw}
+  .notif-banner{left:0}
+  /* Larger touch targets */
+  .oc-action{height:40px;font-size:13px}
+  .mt-btn{width:36px;height:36px}
+  .tb-btn{height:40px}
+}
+
+/* Phone */
+@media(max-width:600px){
+  .tb-stat{display:none}
+  .top-bar{padding:0 12px;gap:8px}
+  .kanban{display:none}
+  .mobile-orders{display:flex}
+  .page{padding:16px}
+  .orders-page{padding:0;flex-direction:column}
+  .analytics-grid{grid-template-columns:1fr}
+  .e86-list{grid-template-columns:1fr}
+  .qr-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+  .tables-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
+  .hist-filters{flex-direction:column}
+  .hist-input{width:100%;min-width:0}
+  .menu-header{flex-direction:column;gap:8px}
+  .menu-search{width:100%}
+  .billing-grid{grid-template-columns:1fr}
+  .bill-card[style*="grid-column"]{grid-column:auto}
+}
+
+/* iOS safe areas */
+@supports(padding-top:env(safe-area-inset-top)){
+  .sidebar{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+  .top-bar{padding-top:env(safe-area-inset-top)}
+  .main{padding-bottom:env(safe-area-inset-bottom)}
+}
+
+/* Touch device improvements */
+@media(hover:none){
+  .order-card:hover{border-color:var(--border)}
+  .e86-item:hover{border-color:var(--border)}
+  .sb-item:hover{background:transparent;color:var(--text2)}
+  .sb-item.active:hover{background:var(--accent)12;color:var(--accent)}
+  /* Prevent iOS rubber-band on body */
+  body{overscroll-behavior:none;-webkit-overflow-scrolling:touch}
+  .kc-body,.page{-webkit-overflow-scrolling:touch}
+  /* Bigger toggles for touch */
+  .e86-toggle{width:52px;height:30px}
+  .e86-toggle::after{width:24px;height:24px}
+  .e86-toggle.off::after{transform:translateX(22px)}
+}
+
+.sb-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:15}
+.sb-backdrop.open{display:block}
+
+/* ====== QR CODES PAGE ====== */
+.qr-header{display:flex;align-items:center;gap:16px;margin-bottom:20px}
+.qr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px}
+.qr-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center;cursor:pointer;transition:all 0.15s}
+.qr-card:hover{border-color:var(--border2)}
+.qr-code{width:120px;height:120px;margin:0 auto 12px;background:white;border-radius:8px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.qr-code svg{width:100%;height:100%}
+.qr-name{font-size:14px;font-weight:600;margin-bottom:4px}
+.qr-url{font-size:11px;color:var(--text3);word-break:break-all}
+.qr-actions-row{display:flex;gap:6px;margin-top:10px;justify-content:center}
+.qr-btn{height:28px;padding:0 12px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text2);font-size:11px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:4px}
+.qr-btn:hover{background:var(--bg3)}
+.qr-btn.primary{background:var(--accent);border-color:var(--accent);color:white}
+.qr-print-all{height:40px;padding:0 20px;border-radius:10px;background:var(--accent);border:none;color:white;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px}
+.qr-print-all:hover{background:var(--accent2)}
+
+/* ====== HISTORY PAGE ====== */
+.hist-filters{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+.hist-input{height:40px;border-radius:10px;border:1px solid var(--border);background:var(--bg2);padding:0 14px;font-size:13px;color:var(--text);outline:none;font-family:inherit;min-width:160px}
+.hist-input:focus{border-color:var(--accent)}
+.hist-input::placeholder{color:var(--text3)}
+.hist-table{width:100%;border-collapse:collapse}
+.hist-table th{text-align:left;padding:10px 14px;font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid var(--border);font-weight:600}
+.hist-table td{padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px}
+.hist-table tr:hover td{background:var(--bg2)}
+.hist-status{font-size:11px;font-weight:600;padding:3px 8px;border-radius:4px}
+.hist-status.completed{background:#22c55e18;color:var(--green)}
+.hist-status.cancelled{background:#ef444418;color:var(--red)}
+.hist-expand{font-size:12px;color:var(--accent);cursor:pointer}
+.hist-expand:hover{text-decoration:underline}
+.hist-detail{display:none;background:var(--bg2);padding:10px 14px}
+.hist-detail.open{display:table-row}
+.hist-detail td{padding:8px 14px;font-size:12px;color:var(--text2)}
+
+/* ====== BILLING PAGE ====== */
+.billing-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.bill-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px}
+.bill-title{font-size:14px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.bill-plan{display:flex;align-items:center;gap:16px;padding:16px;background:var(--bg3);border-radius:10px;border:1px solid var(--accent)33}
+.bill-plan-name{font-size:20px;font-weight:700;color:var(--accent)}
+.bill-plan-price{font-size:14px;color:var(--text2)}
+.bill-plan-badge{font-size:10px;background:var(--green)22;color:var(--green);padding:3px 8px;border-radius:4px;font-weight:600;margin-left:auto}
+.bill-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
+.bill-row:last-child{border-bottom:none}
+.bill-row-label{font-size:13px;color:var(--text2)}
+.bill-row-val{font-size:13px;font-weight:600}
+.bill-invoice{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.bill-invoice:last-child{border-bottom:none}
+.bill-inv-date{font-size:13px;color:var(--text);font-weight:500;min-width:100px}
+.bill-inv-amount{font-size:13px;font-weight:600;color:var(--text)}
+.bill-inv-status{font-size:11px;font-weight:600;padding:3px 8px;border-radius:4px;background:#22c55e18;color:var(--green);margin-left:auto}
+.bill-inv-dl{font-size:12px;color:var(--accent);cursor:pointer;margin-left:12px}
+.bill-inv-dl:hover{text-decoration:underline}
+
+/* ACTION TOAST */
+.action-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);z-index:200;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px 20px;display:flex;align-items:center;gap:10px;box-shadow:0 12px 40px rgba(0,0,0,0.5);transition:transform 0.35s cubic-bezier(0.34,1.56,0.64,1);pointer-events:none;white-space:nowrap}
+.action-toast.show{transform:translateX(-50%) translateY(0);pointer-events:auto}
+.action-toast svg{flex-shrink:0}
+.at-text{font-size:13px;font-weight:600;color:var(--text)}
+
+/* PAGE TRANSITIONS */
+.page{opacity:0;transition:opacity 0.2s ease}
+.page.active{opacity:1}
+
+/* CONFIRM DIALOG */
+.confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:200;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.confirm-overlay.open{display:flex}
+.confirm-box{background:var(--bg2);border:1px solid var(--border);border-radius:14px;width:360px;max-width:90vw;padding:24px;animation:modalIn 0.25s cubic-bezier(0.34,1.56,0.64,1)}
+.confirm-title{font-size:16px;font-weight:700;margin-bottom:6px}
+.confirm-msg{font-size:13px;color:var(--text2);margin-bottom:20px;line-height:1.5}
+.confirm-actions{display:flex;gap:8px;justify-content:flex-end}
+.confirm-btn{height:36px;padding:0 18px;border-radius:8px;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
+.confirm-btn.cancel{background:var(--bg3);color:var(--text2)}
+.confirm-btn.cancel:hover{background:var(--bg4)}
+.confirm-btn.danger{background:var(--red);color:white}
+.confirm-btn.danger:hover{background:#dc2626}
+.confirm-btn.primary{background:var(--accent);color:white}
+.confirm-btn.primary:hover{background:var(--accent2)}
+
+/* NOTIFICATION BANNER */
+.notif-banner{position:fixed;top:0;left:var(--sidebar);right:0;z-index:50;transform:translateY(-100%);transition:transform 0.35s cubic-bezier(0.34,1.56,0.64,1);pointer-events:none}
+.notif-banner.show{transform:translateY(0);pointer-events:auto}
+.notif-inner{margin:12px 24px;background:var(--accent);border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(232,101,10,0.3);cursor:pointer}
+.notif-icon{width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.notif-text{flex:1;color:white;font-size:14px;font-weight:600}
+.notif-sub{color:rgba(255,255,255,0.7);font-size:12px;font-weight:400;margin-top:2px}
+.notif-dismiss{color:rgba(255,255,255,0.6);font-size:12px;cursor:pointer}
+@media(max-width:900px){.notif-banner{left:0}}
+
+/* TABLE DETAIL PANEL */
+.td-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:100;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.td-overlay.open{display:flex}
+.td-modal{background:var(--bg2);border:1px solid var(--border);border-radius:16px;width:400px;max-width:90vw;overflow:hidden;animation:modalIn 0.25s cubic-bezier(0.34,1.56,0.64,1)}
+.td-header{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.td-header-left{display:flex;align-items:center;gap:12px}
+.td-table-name{font-size:20px;font-weight:700}
+.td-status-pill{font-size:11px;font-weight:600;padding:4px 10px;border-radius:6px}
+.td-body{padding:20px}
+.td-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)}
+.td-row:last-child{border-bottom:none}
+.td-row-label{font-size:13px;color:var(--text3)}
+.td-row-val{font-size:13px;font-weight:600}
+.td-order-items{margin-top:12px}
+.td-order-item{font-size:12px;color:var(--text2);padding:3px 0;display:flex;gap:6px}
+.td-order-item span{color:var(--accent);font-weight:600}
+.td-footer{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px}
+.td-btn{flex:1;height:40px;border-radius:10px;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px}
+.td-btn.primary{background:var(--accent);color:white}
+.td-btn.primary:hover{background:var(--accent2)}
+.td-btn.secondary{background:var(--bg3);color:var(--text2);border:1px solid var(--border)}
+.td-btn.danger{background:var(--red)18;color:var(--red);border:1px solid var(--red)33}
+
+/* MENU ITEM MODAL */
+.mi-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:100;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.mi-overlay.open{display:flex}
+.mi-modal{background:var(--bg2);border:1px solid var(--border);border-radius:16px;width:500px;max-width:90vw;max-height:85vh;overflow:hidden;display:flex;flex-direction:column;animation:modalIn 0.25s cubic-bezier(0.34,1.56,0.64,1)}
+.mi-header{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.mi-title{font-size:18px;font-weight:700}
+.mi-body{padding:20px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:14px}
+.mi-field{display:flex;flex-direction:column;gap:4px}
+.mi-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.3px;font-weight:500}
+.mi-input{width:100%;height:40px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);padding:0 12px;font-size:14px;color:var(--text);outline:none;font-family:inherit}
+.mi-input:focus{border-color:var(--accent)}
+.mi-input::placeholder{color:var(--text3)}
+.mi-select{width:100%;height:40px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);padding:0 12px;font-size:14px;color:var(--text);outline:none;font-family:inherit;appearance:none;cursor:pointer}
+.mi-row{display:flex;gap:12px}
+.mi-row>*{flex:1}
+.mi-tags-wrap{display:flex;flex-wrap:wrap;gap:6px}
+.mi-tag{font-size:12px;padding:6px 14px;border-radius:20px;cursor:pointer;user-select:none;transition:all 0.15s}
+.mi-tag.off{background:var(--bg4);color:var(--text3);border:1px solid var(--border)}
+.mi-tag.on{background:var(--accent)22;color:var(--accent);border:1px solid var(--accent)55}
+.mi-footer{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px}
+.mi-btn{flex:1;height:42px;border-radius:10px;border:none;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
+.mi-btn.primary{background:var(--accent);color:white}
+.mi-btn.primary:hover{background:var(--accent2)}
+.mi-btn.secondary{background:var(--bg3);color:var(--text2);border:1px solid var(--border)}
+.mi-btn.danger{background:var(--red)18;color:var(--red);border:1px solid var(--red)33}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sb-brand">
+    <div class="sb-logo"><svg width="18" height="18" viewBox="0 0 24 24" fill="white" stroke="none"><path d="M7 2v20M17 2v20M7 12h10M5 2h4M15 2h4M5 22h4M15 22h4"/></svg></div>
+    <div>
+      <div class="sb-name" id="sbName">State of Mind</div>
+    </div>
+    <div class="sb-badge">OWNER</div>
+  </div>
+  <div class="sb-nav">
+    <div class="sb-item active" onclick="goPage('orders')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Orders<span class="sb-count" id="sbOrderCount">4</span></div>
+    <div class="sb-item" onclick="goPage('eighty6')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>86 Board<span class="sb-alert" id="sb86Alert" style="display:none"></span></div>
+    <div class="sb-item" onclick="goPage('menu')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 6h16M4 12h16M4 18h16"/></svg>Menu</div>
+    <div class="sb-item" onclick="goPage('tables')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>Tables</div>
+    <div class="sb-item" onclick="goPage('analytics')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>Analytics</div>
+    <div class="sb-item" onclick="goPage('history')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>History</div>
+    <div class="sb-divider"></div>
+    <div class="sb-item" onclick="goPage('qrcodes')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/><path d="M21 14h-3v3M21 21h-3v-3M18 21h3"/></svg>QR Codes</div>
+    <div class="sb-item" onclick="goPage('billing')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>Billing</div>
+    <div class="sb-item" onclick="goPage('settings')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Settings</div>
+  </div>
+  <div class="sb-bottom">
+    <div class="sb-item" onclick="window.open('https://orderly-flax.vercel.app','_blank')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"/></svg>Preview</div>
+    <div class="sb-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>Sign Out</div>
+  </div>
+</nav>
+
+<!-- SIDEBAR BACKDROP (tablet) -->
+<div class="sb-backdrop" id="sbBackdrop" onclick="closeSidebar()"></div>
+
+<!-- MAIN -->
+<div class="main">
+  <!-- TOP BAR -->
+  <div class="top-bar">
+    <div class="sb-toggle" onclick="toggleSidebar()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg></div>
+    <div class="tb-title" id="pageTitle">Orders</div>
+    <div class="tb-spacer"></div>
+    <button class="tb-btn accent" onclick="simulateOrder()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>New Order</button>
+    <button class="tb-btn" id="demoBtn" onclick="toggleDemoMode()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg><span id="demoBtnText">Demo</span></button>
+    <button class="tb-btn" id="demoBtn" onclick="toggleDemoMode()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="5 3 19 12 5 21 5 3"/></svg><span id="demoLabel">Demo</span></button>
+    <button class="tb-btn tb-audio" id="audioBtn" onclick="toggleAudio()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 010 7.07M19.07 4.93a10 10 0 010 14.14"/></svg></button>
+    <div class="tb-theme">
+      <div class="tb-theme-opt" onclick="setDashTheme('light')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></div>
+      <div class="tb-theme-opt active" onclick="setDashTheme('dark')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z"/></svg></div>
+    </div>
+    <div class="tb-stat"><div class="tb-stat-val accent" id="statActive">4</div><div class="tb-stat-label">Active</div></div>
+    <div class="tb-stat"><div class="tb-stat-val" id="statAvgWait">6m</div><div class="tb-stat-label">Avg Wait</div></div>
+    <div class="tb-stat"><div class="tb-stat-val green" id="statServed">23</div><div class="tb-stat-label">Served</div></div>
+    <div class="tb-stat"><div class="tb-stat-val" id="statRevenue">$847</div><div class="tb-stat-label">Revenue</div></div>
+    <div class="tb-clock" id="tbClock">8:42 PM</div>
+  </div>
+
+  <!-- ORDER DETAIL MODAL -->
+  <div class="od-overlay" id="odOverlay" onclick="if(event.target===this)closeOrderDetail()">
+    <div class="od-modal">
+      <div class="od-header"><div class="od-title" id="odTitle">Order #1001</div><button class="od-close" onclick="closeOrderDetail()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
+      <div class="od-body" id="odBody"></div>
+      <div class="od-footer" id="odFooter"></div>
+    </div>
+  </div>
+
+  <!-- ACTION TOAST -->
+  <div class="action-toast" id="actionToast"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><div class="at-text" id="atText"></div></div>
+
+  <!-- CONFIRM DIALOG -->
+  <div class="confirm-overlay" id="confirmOverlay" onclick="if(event.target===this)closeConfirm()">
+    <div class="confirm-box">
+      <div class="confirm-title" id="confirmTitle">Are you sure?</div>
+      <div class="confirm-msg" id="confirmMsg"></div>
+      <div class="confirm-actions"><button class="confirm-btn cancel" onclick="closeConfirm()">Cancel</button><button class="confirm-btn danger" id="confirmAction">Confirm</button></div>
+    </div>
+  </div>
+
+  <!-- NOTIFICATION BANNER -->
+  <div class="notif-banner" id="notifBanner" onclick="goPageDirect('orders');hideNotif()">
+    <div class="notif-inner">
+      <div class="notif-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/></svg></div>
+      <div><div class="notif-text" id="notifText">New order from Table 5</div><div class="notif-sub" id="notifSub">2 items</div></div>
+      <div class="notif-dismiss" onclick="event.stopPropagation();hideNotif()">Dismiss</div>
+    </div>
+  </div>
+
+  <!-- TABLE DETAIL MODAL -->
+  <div class="td-overlay" id="tdOverlay" onclick="if(event.target===this)closeTableDetail()">
+    <div class="td-modal">
+      <div class="td-header">
+        <div class="td-header-left"><div class="td-table-name" id="tdName">Table 1</div><div class="td-status-pill" id="tdStatus">Empty</div></div>
+        <button class="od-close" onclick="closeTableDetail()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+      </div>
+      <div class="td-body" id="tdBody"></div>
+      <div class="td-footer" id="tdFooter"></div>
+    </div>
+  </div>
+
+  <!-- MENU ITEM MODAL -->
+  <div class="mi-overlay" id="miOverlay" onclick="if(event.target===this)closeMenuModal()">
+    <div class="mi-modal">
+      <div class="mi-header"><div class="mi-title" id="miTitle">Add Item</div><button class="od-close" onclick="closeMenuModal()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
+      <div class="mi-body">
+        <div class="mi-field"><div class="mi-label">Item Name</div><input class="mi-input" id="miName" placeholder="e.g. Classic Burger"></div>
+        <div class="mi-row">
+          <div class="mi-field"><div class="mi-label">Price</div><input class="mi-input" id="miPrice" type="number" step="0.01" placeholder="0.00"></div>
+          <div class="mi-field"><div class="mi-label">Category</div><select class="mi-select" id="miCat"><option>Burgers</option><option>Pizza</option><option>Salads</option><option>Mexican</option><option>Apps</option><option>Drinks</option></select></div>
+        </div>
+        <div class="mi-field"><div class="mi-label">Description (optional)</div><input class="mi-input" id="miDesc" placeholder="Short description"></div>
+        <div class="mi-field"><div class="mi-label">Image URL (optional)</div><input class="mi-input" id="miImg" placeholder="https://..."></div>
+        <div class="mi-field">
+          <div class="mi-label">Tags</div>
+          <div class="mi-tags-wrap" id="miTags">
+            <div class="mi-tag off" onclick="this.classList.toggle('on');this.classList.toggle('off')">Popular</div>
+            <div class="mi-tag off" onclick="this.classList.toggle('on');this.classList.toggle('off')">Vegetarian</div>
+            <div class="mi-tag off" onclick="this.classList.toggle('on');this.classList.toggle('off')">Vegan</div>
+            <div class="mi-tag off" onclick="this.classList.toggle('on');this.classList.toggle('off')">GF</div>
+            <div class="mi-tag off" onclick="this.classList.toggle('on');this.classList.toggle('off')">Spicy</div>
+            <div class="mi-tag off" onclick="this.classList.toggle('on');this.classList.toggle('off')">New</div>
+          </div>
+        </div>
+        <div class="mi-field">
+          <div class="mi-label">Modifiers <span style="color:var(--text3);font-weight:400">(comma separated)</span></div>
+          <input class="mi-input" id="miMods" placeholder="e.g. No onions, Extra cheese, Well done, Gluten-free bun">
+        </div>
+        <div class="mi-field">
+          <div class="mi-label">Allergens <span style="color:var(--text3);font-weight:400">(comma separated)</span></div>
+          <input class="mi-input" id="miAllergens" placeholder="e.g. Dairy, Gluten, Nuts, Soy">
+        </div>
+      </div>
+      <div class="mi-footer" id="miFooter">
+        <button class="mi-btn secondary" onclick="closeMenuModal()">Cancel</button>
+        <button class="mi-btn primary" id="miSaveBtn" onclick="saveMenuItem()">Add Item</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- ORDERS PAGE -->
+    <div class="page orders-page active" id="page-orders">
+      <div class="kanban" id="kanban">
+        <div class="kanban-col" id="col-new">
+          <div class="kc-header"><div class="kc-dot" style="background:var(--accent)"></div><div class="kc-title">New</div><div class="kc-count" id="cnt-new">2</div></div>
+          <div class="kc-body" id="body-new"></div>
+        </div>
+        <div class="kanban-col" id="col-accepted">
+          <div class="kc-header"><div class="kc-dot" style="background:var(--yellow)"></div><div class="kc-title">Accepted</div><div class="kc-count" id="cnt-accepted">1</div></div>
+          <div class="kc-body" id="body-accepted"></div>
+        </div>
+        <div class="kanban-col" id="col-preparing">
+          <div class="kc-header"><div class="kc-dot" style="background:var(--blue)"></div><div class="kc-title">Preparing</div><div class="kc-count" id="cnt-preparing">1</div></div>
+          <div class="kc-body" id="body-preparing"></div>
+        </div>
+        <div class="kanban-col" id="col-ready">
+          <div class="kc-header"><div class="kc-dot" style="background:var(--green)"></div><div class="kc-title">Ready</div><div class="kc-count" id="cnt-ready">0</div></div>
+          <div class="kc-body" id="body-ready"></div>
+        </div>
+        <div class="kanban-col" id="col-served">
+          <div class="kc-header"><div class="kc-dot" style="background:var(--text3)"></div><div class="kc-title">Served</div><div class="kc-count" id="cnt-served">0</div></div>
+          <div class="kc-body" id="body-served"></div>
+        </div>
+      </div>
+      <div class="mobile-orders" id="mobileOrders"></div>
+    </div>
+    <div class="page" id="page-eighty6">
+      <div class="e86-controls">
+        <div style="flex:1;min-width:200px"><div style="font-size:14px;color:var(--text2)">Toggle items off when they run out. Grouped by category.</div></div>
+        <select class="menu-search" id="e6Filter" onchange="render86()" style="flex:0 0 140px;height:40px;cursor:pointer;appearance:auto">
+          <option value="all">Show: All</option>
+          <option value="available">Available only</option>
+          <option value="86d">86'd only</option>
+        </select>
+        <input class="menu-search" style="flex:0 0 220px" placeholder="Search items..." id="e6Search" oninput="render86()">
+      </div>
+      <div class="e86-stats">
+        <div class="e86-stat"><div class="e86-stat-dot" style="background:var(--green)"></div><div class="e86-stat-val" id="e6AvailCount">15</div><div class="e86-stat-label">Available</div></div>
+        <div class="e86-stat"><div class="e86-stat-dot" style="background:var(--red)"></div><div class="e86-stat-val" id="e6UnavailCount">0</div><div class="e86-stat-label">86'd</div></div>
+        <div class="e86-stat"><div class="e86-stat-dot" style="background:var(--text3)"></div><div class="e86-stat-val" id="e6TotalCount">15</div><div class="e86-stat-label">Total items</div></div>
+      </div>
+      <div id="e6Groups"></div>
+    </div>
+
+    <!-- MENU PAGE -->
+    <div class="page" id="page-menu">
+      <div class="menu-header">
+        <input class="menu-search" placeholder="Search menu items..." id="menuSearch" oninput="filterMenu(this.value)">
+        <button class="tb-btn" onclick="showToast('PDF import coming soon — for now, add items manually')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Import PDF</button>
+        <button class="menu-add-btn" onclick="openMenuModal()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Add Item</button>
+      </div>
+      <div class="menu-cats" id="menuCats"></div>
+      <table class="menu-table">
+        <thead><tr><th>Item</th><th>Category</th><th>Price</th><th>Tags</th><th>Modifiers</th><th>Status</th><th></th></tr></thead>
+        <tbody id="menuBody"></tbody>
+      </table>
+    </div>
+
+    <!-- TABLES PAGE -->
+    <div class="page" id="page-tables">
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px">
+        <div style="flex:1;font-size:14px;color:var(--text2)">Tap a table to view details. Empty tables can be removed.</div>
+        <button class="menu-add-btn" onclick="addTable()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Add Table</button>
+      </div>
+      <div class="tables-grid" id="tablesGrid"></div>
+    </div>
+
+    <!-- ANALYTICS PAGE -->
+    <div class="page" id="page-analytics">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+        <div style="display:flex;gap:4px" id="anDateRange">
+          <div class="menu-cat active" onclick="setAnRange('today',this)">Today</div>
+          <div class="menu-cat" onclick="setAnRange('week',this)">This Week</div>
+          <div class="menu-cat" onclick="setAnRange('month',this)">This Month</div>
+        </div>
+        <div class="tb-spacer"></div>
+        <div style="font-size:12px;color:var(--text3)" id="anPeriodLabel">March 20, 2026</div>
+      </div>
+
+      <!-- STAT CARDS -->
+      <div class="analytics-grid" id="anStatCards">
+        <div class="an-card"><div class="an-label">Orders</div><div class="an-val" style="color:var(--accent)" id="anOrders">27</div><div class="an-sub" id="anOrdersSub">+12% vs yesterday</div></div>
+        <div class="an-card"><div class="an-label">Revenue</div><div class="an-val" id="anRevenue">$847</div><div class="an-sub" id="anRevenueSub">Avg ticket $31.37</div></div>
+        <div class="an-card"><div class="an-label">Avg Wait Time</div><div class="an-val" id="anWait">6m</div><div class="an-sub" id="anWaitSub">Target: under 10m</div></div>
+        <div class="an-card"><div class="an-label">Repeat Customers</div><div class="an-val" style="color:var(--green)" id="anRepeat">38%</div><div class="an-sub" id="anRepeatSub">6 of 16 customers</div></div>
+      </div>
+
+      <!-- ROW: HOURLY + METHOD -->
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:16px">
+        <div class="an-chart">
+          <div class="an-chart-title">Orders by hour</div>
+          <div class="an-bars" id="anBars"></div>
+        </div>
+        <div class="an-chart" style="padding:16px">
+          <div class="an-chart-title" style="margin-bottom:14px">Order method</div>
+          <div id="anMethodChart">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px"><div style="width:100%;height:12px;border-radius:6px;background:var(--bg3);overflow:hidden;display:flex"><div style="width:72%;background:var(--accent);border-radius:6px"></div><div style="width:17%;background:var(--blue)"></div><div style="width:11%;background:var(--purple)"></div></div></div>
+            <div style="display:flex;gap:16px;flex-wrap:wrap">
+              <div style="display:flex;align-items:center;gap:6px"><div style="width:10px;height:10px;border-radius:3px;background:var(--accent)"></div><div><div style="font-size:13px;font-weight:600">72%</div><div style="font-size:11px;color:var(--text3)">Voice</div></div></div>
+              <div style="display:flex;align-items:center;gap:6px"><div style="width:10px;height:10px;border-radius:3px;background:var(--blue)"></div><div><div style="font-size:13px;font-weight:600">17%</div><div style="font-size:11px;color:var(--text3)">Text</div></div></div>
+              <div style="display:flex;align-items:center;gap:6px"><div style="width:10px;height:10px;border-radius:3px;background:var(--purple)"></div><div><div style="font-size:13px;font-weight:600">11%</div><div style="font-size:11px;color:var(--text3)">Browse</div></div></div>
+            </div>
+          </div>
+          <div style="margin-top:20px">
+            <div class="an-chart-title" style="margin-bottom:10px">Orders by day</div>
+            <div style="display:flex;align-items:flex-end;gap:6px;height:80px" id="anDayBars"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- HEATMAP -->
+      <div class="an-chart" style="padding:16px;margin-bottom:16px">
+        <div class="an-chart-title" style="margin-bottom:14px">Busiest times <span style="font-weight:400;color:var(--text3);font-size:12px">- darker = busier</span></div>
+        <div class="heatmap" id="anHeatmap"></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:10px;justify-content:flex-end">
+          <span style="font-size:10px;color:var(--text3)">Quiet</span>
+          <div style="display:flex;gap:2px"><div class="hm-0" style="width:16px;height:12px;border-radius:3px"></div><div class="hm-1" style="width:16px;height:12px;border-radius:3px"></div><div class="hm-2" style="width:16px;height:12px;border-radius:3px"></div><div class="hm-3" style="width:16px;height:12px;border-radius:3px"></div><div class="hm-4" style="width:16px;height:12px;border-radius:3px"></div><div class="hm-5" style="width:16px;height:12px;border-radius:3px"></div></div>
+          <span style="font-size:10px;color:var(--text3)">Rush</span>
+        </div>
+      </div>
+
+      <!-- ROW: HOT SELLERS + COLD ITEMS -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+        <div class="an-chart" style="padding:16px">
+          <div class="an-chart-title" style="margin-bottom:12px;display:flex;align-items:center;gap:6px"><span style="color:var(--green)">&#9650;</span> Hot sellers</div>
+          <div id="anHotSellers"></div>
+        </div>
+        <div class="an-chart" style="padding:16px">
+          <div class="an-chart-title" style="margin-bottom:12px;display:flex;align-items:center;gap:6px"><span style="color:var(--red)">&#9660;</span> Underperformers</div>
+          <div id="anColdItems"></div>
+        </div>
+      </div>
+
+      <!-- ROW: REPEAT DISHES + REVENUE GENERATORS -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+        <div class="an-chart" style="padding:16px">
+          <div class="an-chart-title" style="margin-bottom:12px">Repeat customer favorites</div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:10px">Items most ordered by returning customers</div>
+          <div id="anRepeatDishes"></div>
+        </div>
+        <div class="an-chart" style="padding:16px">
+          <div class="an-chart-title" style="margin-bottom:12px">Revenue generators</div>
+          <div class="an-pop-list" id="anRevItems"></div>
+        </div>
+      </div>
+
+      <!-- CUSTOMER INSIGHTS -->
+      <div class="an-chart" style="padding:16px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <div class="an-chart-title" style="margin-bottom:0">Customer insights</div>
+          <div style="font-size:12px;color:var(--text3)" id="anCustCount">16 unique customers today</div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px" id="anCustomers"></div>
+      </div>
+    </div>
+
+    <!-- SETTINGS PAGE -->
+    <div class="page" id="page-settings">
+      <div class="settings-grid">
+        <div class="settings-card">
+          <div class="sc-title"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>Restaurant Profile</div>
+          <div class="sc-field"><div class="sc-label">Restaurant Name</div><input class="sc-input" value="State of Mind"></div>
+          <div class="sc-field"><div class="sc-label">Cuisine Type</div><input class="sc-input" value="Modern Asian Fusion"></div>
+          <div class="sc-field"><div class="sc-label">Location</div><input class="sc-input" value="123 Main Street, San Francisco, CA"></div>
+          <div class="sc-field"><div class="sc-label">Phone</div><input class="sc-input" value="(415) 555-0123"></div>
+          <button class="sc-save" onclick="showToast('Profile saved')">Save Changes</button>
+        </div>
+        <div class="settings-card">
+          <div class="sc-title"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Operating Hours</div>
+          <div class="sc-field"><div class="sc-label">Monday - Friday</div><input class="sc-input" value="11:00 AM - 10:00 PM"></div>
+          <div class="sc-field"><div class="sc-label">Saturday - Sunday</div><input class="sc-input" value="10:00 AM - 11:00 PM"></div>
+          <div class="sc-field"><div class="sc-label">Time Zone</div><input class="sc-input" value="Pacific Time (PT)"></div>
+          <button class="sc-save" onclick="showToast('Hours updated')">Save Changes</button>
+        </div>
+        <div class="settings-card">
+          <div class="sc-title"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>Branding</div>
+          <div class="sc-field"><div class="sc-label">Primary Color</div><div class="sc-color-row"><div class="sc-color" style="background:#e8650a"></div><input class="sc-input" value="#e8650a" style="flex:1"></div></div>
+          <div class="sc-field"><div class="sc-label">Welcome Message</div><input class="sc-input" value="Welcome to State of Mind"></div>
+          <div class="sc-field"><div class="sc-label">Currency</div><input class="sc-input" value="USD ($)"></div>
+          <div class="sc-field"><div class="sc-label">Tax Rate (%)</div><input class="sc-input" value="8.0" type="number" step="0.1"></div>
+          <button class="sc-save" onclick="showToast('Branding saved')">Save Changes</button>
+        </div>
+        <div class="settings-card">
+          <div class="sc-title"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>Notifications</div>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <label style="display:flex;align-items:center;justify-content:space-between;cursor:pointer"><span style="font-size:13px">New order sound alert</span><input type="checkbox" checked style="width:18px;height:18px;accent-color:var(--accent)"></label>
+            <label style="display:flex;align-items:center;justify-content:space-between;cursor:pointer"><span style="font-size:13px">Email on new order</span><input type="checkbox" style="width:18px;height:18px;accent-color:var(--accent)"></label>
+            <label style="display:flex;align-items:center;justify-content:space-between;cursor:pointer"><span style="font-size:13px">Daily summary email</span><input type="checkbox" checked style="width:18px;height:18px;accent-color:var(--accent)"></label>
+            <label style="display:flex;align-items:center;justify-content:space-between;cursor:pointer"><span style="font-size:13px">Low stock alerts</span><input type="checkbox" checked style="width:18px;height:18px;accent-color:var(--accent)"></label>
+            <label style="display:flex;align-items:center;justify-content:space-between;cursor:pointer"><span style="font-size:13px">Order aging warning (>10min)</span><input type="checkbox" checked style="width:18px;height:18px;accent-color:var(--accent)"></label>
+          </div>
+          <button class="sc-save" style="margin-top:14px" onclick="showToast('Notification preferences saved')">Save Changes</button>
+        </div>
+        <div class="settings-card">
+          <div class="sc-title"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>Staff</div>
+          <div class="sc-field"><div class="sc-label">Staff PINs</div><div style="font-size:13px;color:var(--text2);line-height:1.8">1234 — Maria (Kitchen)<br>5678 — Carlos (Host)<br>9012 — Alex (Server)</div></div>
+          <div style="display:flex;gap:8px;margin-top:8px"><button class="sc-save" onclick="showToast('Feature coming soon')">Add Staff</button><button class="sc-save" style="background:var(--bg3);color:var(--text2)" onclick="showToast('Feature coming soon')">Manage</button></div>
+        </div>
+        <div class="settings-card">
+          <div class="sc-title"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>Integrations</div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px;background:var(--bg3);border-radius:8px"><div><div style="font-size:13px;font-weight:600">POS System</div><div style="font-size:11px;color:var(--text3)">Not connected</div></div><button class="sc-save" style="margin:0;height:30px;font-size:11px;padding:0 12px" onclick="showToast('POS integration coming soon')">Connect</button></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px;background:var(--bg3);border-radius:8px"><div><div style="font-size:13px;font-weight:600">Kitchen Printer</div><div style="font-size:11px;color:var(--text3)">Not connected</div></div><button class="sc-save" style="margin:0;height:30px;font-size:11px;padding:0 12px" onclick="showToast('Printer integration coming soon')">Connect</button></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px;background:var(--bg3);border-radius:8px"><div><div style="font-size:13px;font-weight:600">Webhook URL</div><div style="font-size:11px;color:var(--text3)">For custom integrations</div></div><button class="sc-save" style="margin:0;height:30px;font-size:11px;padding:0 12px;background:var(--bg4);color:var(--text2)" onclick="showToast('Feature coming soon')">Setup</button></div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:24px;padding:20px;background:var(--bg2);border:1px solid var(--red)33;border-radius:12px">
+        <div style="font-size:14px;font-weight:600;color:var(--red);margin-bottom:8px">Danger Zone</div>
+        <div style="font-size:13px;color:var(--text3);margin-bottom:14px;line-height:1.5">These actions are permanent and cannot be undone.</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="sc-save" style="background:transparent;border:1px solid var(--red)44;color:var(--red)" onclick="showConfirm('Transfer ownership?','This will transfer all restaurant data to another owner account.','Transfer',function(){showToast('Feature coming soon')})">Transfer Ownership</button>
+          <button class="sc-save" style="background:var(--red);border:none" onclick="showConfirm('Delete restaurant?','This will permanently delete State of Mind, all orders, menu items, and customer data. This cannot be undone.','Delete Everything',function(){showToast('Feature coming soon')})">Delete Restaurant</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- QR CODES PAGE -->
+    <div class="page" id="page-qrcodes">
+      <div class="qr-header">
+        <div style="flex:1"><div style="font-size:14px;color:var(--text2)">Each table gets a unique QR code. Print and place on tables for customers to scan.</div></div>
+        <button class="qr-print-all" onclick="printAllQR()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>Print All</button>
+      </div>
+      <div class="qr-grid" id="qrGrid"></div>
+    </div>
+
+    <!-- HISTORY PAGE -->
+    <div class="page" id="page-history">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px" id="histStats">
+        <div class="an-card"><div class="an-label">Total Orders</div><div class="an-val" style="color:var(--accent)" id="histTotalOrders">31</div></div>
+        <div class="an-card"><div class="an-label">Total Revenue</div><div class="an-val" id="histTotalRev">$1,091</div></div>
+        <div class="an-card"><div class="an-label">Avg Ticket</div><div class="an-val" id="histAvgTicket">$35.19</div></div>
+        <div class="an-card"><div class="an-label">Completion Rate</div><div class="an-val" style="color:var(--green)" id="histCompRate">96%</div></div>
+      </div>
+      <div class="hist-filters">
+        <input class="hist-input" type="date" id="histDateFrom" onchange="filterHistory()">
+        <span style="color:var(--text3);font-size:13px">to</span>
+        <input class="hist-input" type="date" id="histDateTo" onchange="filterHistory()">
+        <input class="hist-input" placeholder="Search by table, item, or order #..." id="histSearch" oninput="filterHistory()" style="flex:1;min-width:200px">
+        <select class="hist-input" id="histStatusFilter" onchange="filterHistory()" style="min-width:130px;cursor:pointer;appearance:auto">
+          <option value="all">All statuses</option>
+          <option value="completed">Completed</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+        <button class="tb-btn" onclick="exportHistoryCSV()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Export CSV</button>
+        <div style="margin-left:auto;font-size:13px;color:var(--text3)" id="histCount">Showing 8 orders</div>
+      </div>
+      <table class="hist-table">
+        <thead><tr><th>Order</th><th>Table</th><th>Items</th><th>Total</th><th>Time</th><th>Duration</th><th>Status</th><th></th></tr></thead>
+        <tbody id="histBody"></tbody>
+      </table>
+    </div>
+
+    <!-- BILLING PAGE -->
+    <div class="page" id="page-billing">
+      <div class="billing-grid">
+        <div class="bill-card">
+          <div class="bill-title"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>Current Plan</div>
+          <div class="bill-plan">
+            <div>
+              <div class="bill-plan-name">Orderly Pro</div>
+              <div class="bill-plan-price">$300 / month</div>
+            </div>
+            <div class="bill-plan-badge">Active</div>
+          </div>
+          <div style="margin-top:16px">
+            <div class="bill-row"><div class="bill-row-label">Billing cycle</div><div class="bill-row-val">Monthly</div></div>
+            <div class="bill-row"><div class="bill-row-label">Next billing date</div><div class="bill-row-val">April 1, 2026</div></div>
+            <div class="bill-row"><div class="bill-row-label">Payment method</div><div class="bill-row-val">Visa ending in 4242</div></div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:16px">
+            <button class="sc-save">Change Plan</button>
+            <button class="sc-save" style="background:var(--bg3);color:var(--text2)">Update Payment</button>
+          </div>
+        </div>
+        <div class="bill-card">
+          <div class="bill-title"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Usage This Month</div>
+          <div class="bill-row"><div class="bill-row-label">Orders processed</div><div class="bill-row-val" style="color:var(--accent)">847</div></div>
+          <div class="bill-row"><div class="bill-row-label">Voice orders</div><div class="bill-row-val">612 (72%)</div></div>
+          <div class="bill-row"><div class="bill-row-label">Text orders</div><div class="bill-row-val">142 (17%)</div></div>
+          <div class="bill-row"><div class="bill-row-label">Manual orders</div><div class="bill-row-val">93 (11%)</div></div>
+          <div class="bill-row"><div class="bill-row-label">Active tables</div><div class="bill-row-val">12</div></div>
+          <div class="bill-row"><div class="bill-row-label">AI interactions</div><div class="bill-row-val">2,341</div></div>
+        </div>
+        <div class="bill-card" style="grid-column:span 2">
+          <div class="bill-title"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Invoices</div>
+          <div id="billInvoices">
+            <div class="bill-invoice"><div class="bill-inv-date">Mar 1, 2026</div><div class="bill-inv-amount">$300.00</div><div class="bill-inv-status">Paid</div><div class="bill-inv-dl">Download</div></div>
+            <div class="bill-invoice"><div class="bill-inv-date">Feb 1, 2026</div><div class="bill-inv-amount">$300.00</div><div class="bill-inv-status">Paid</div><div class="bill-inv-dl">Download</div></div>
+            <div class="bill-invoice"><div class="bill-inv-date">Jan 1, 2026</div><div class="bill-inv-amount">$300.00</div><div class="bill-inv-status">Paid</div><div class="bill-inv-dl">Download</div></div>
+            <div class="bill-invoice"><div class="bill-inv-date">Dec 1, 2025</div><div class="bill-inv-amount">$300.00</div><div class="bill-inv-status">Paid</div><div class="bill-inv-dl">Download</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== DEMO DATA =====
+var orders = [
+  { id:1001, table:'Table 3', status:'new', items:[{qty:2,name:'Classic Burger',mod:'No onions',price:12.99},{qty:1,name:'Loaded Nachos',mod:'',price:10.99},{qty:2,name:'Fresh Lemonade',mod:'',price:4.99}], time:2, special:'' },
+  { id:1002, table:'Table 7', status:'new', items:[{qty:1,name:'Margherita Pizza',mod:'Extra basil',price:14.99},{qty:1,name:'Caesar Salad',mod:'Dressing on side',price:9.99}], time:1, special:'Nut allergy at table' },
+  { id:1003, table:'Table 1', status:'accepted', items:[{qty:1,name:'BBQ Bacon Burger',mod:'',price:14.99},{qty:1,name:'Wings Basket',mod:'Buffalo',price:11.99},{qty:1,name:'Iced Coffee',mod:'Oat milk',price:5.49}], time:5, special:'' },
+  { id:1004, table:'Patio 2', status:'preparing', items:[{qty:1,name:'Four Cheese Pizza',mod:'',price:16.49},{qty:1,name:'Greek Salad',mod:'No olives',price:10.49},{qty:2,name:'Fresh Lemonade',mod:'',price:4.99}], time:9, special:'' },
+];
+var nextOrderId = 1005;
+var servedCount = 23;
+var revenue = 847;
+var audioEnabled = true;
+
+var menuItems = [
+  {id:'b1',name:'Classic Burger',cat:'Burgers',price:12.99,tags:['Popular'],avail:true,desc:'Juicy beef patty with lettuce, tomato, and special sauce',img:'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=100&h=100&fit=crop',mods:['No onions','Extra cheese','Well done','Gluten-free bun']},
+  {id:'b2',name:'BBQ Bacon Burger',cat:'Burgers',price:14.99,tags:['Spicy'],avail:true,desc:'Smoked bacon, cheddar, crispy onions, BBQ sauce',img:'https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=100&h=100&fit=crop',mods:['No bacon','Extra spicy','Well done']},
+  {id:'b3',name:'Mushroom Swiss',cat:'Burgers',price:13.49,tags:[],avail:true,desc:'Sauteed mushrooms and melted Swiss cheese',img:'https://images.unsplash.com/photo-1572802419224-296b0aeee0d9?w=100&h=100&fit=crop',mods:['Extra mushrooms','No swiss','Well done']},
+  {id:'p1',name:'Margherita Pizza',cat:'Pizza',price:14.99,tags:['Vegetarian','Popular'],avail:true,desc:'Fresh mozzarella, basil, and tomato sauce',img:'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=100&h=100&fit=crop',mods:['Extra basil','Light cheese','Add peppers']},
+  {id:'p2',name:'Pepperoni',cat:'Pizza',price:15.99,tags:[],avail:true,desc:'Classic pepperoni with mozzarella and red sauce',img:'https://images.unsplash.com/photo-1628840042765-356cda07504e?w=100&h=100&fit=crop',mods:['Extra pepperoni','Light sauce','Add olives']},
+  {id:'p3',name:'Four Cheese',cat:'Pizza',price:16.49,tags:['Vegetarian'],avail:true,desc:'Mozzarella, gorgonzola, parmesan, and fontina',img:'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=100&h=100&fit=crop',mods:['Light cheese','Add garlic']},
+  {id:'s1',name:'Caesar Salad',cat:'Salads',price:9.99,tags:['Vegetarian'],avail:true,desc:'Crisp romaine lettuce with parmesan and croutons',img:'https://images.unsplash.com/photo-1546793665-c74683f339c1?w=100&h=100&fit=crop',mods:['Dressing on side','No croutons','Add chicken']},
+  {id:'s2',name:'Greek Salad',cat:'Salads',price:10.49,tags:['Vegetarian','GF'],avail:true,desc:'Cucumber, tomato, olives, red onion, feta',img:'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=100&h=100&fit=crop',mods:['No olives','No feta','Add chicken']},
+  {id:'m1',name:'Chicken Tacos',cat:'Mexican',price:11.49,tags:['GF','Spicy'],avail:true,desc:'Grilled chicken with fresh salsa, guac, and lime',img:'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=100&h=100&fit=crop',mods:['Extra spicy','No cilantro','Corn tortilla']},
+  {id:'m2',name:'Loaded Nachos',cat:'Mexican',price:10.99,tags:['Vegetarian','GF'],avail:true,desc:'Tortilla chips with cheese, jalapenos, sour cream',img:'https://images.unsplash.com/photo-1513456852971-30c0b8199d4d?w=100&h=100&fit=crop',mods:['No jalapenos','Extra cheese','Add guac']},
+  {id:'m3',name:'Burrito Bowl',cat:'Mexican',price:12.99,tags:['GF','Popular'],avail:true,desc:'Rice, black beans, chicken, pico, sour cream, guac',img:'https://images.unsplash.com/photo-1626700051175-6818013e1d4f?w=100&h=100&fit=crop',mods:['No sour cream','Extra rice','Add guac']},
+  {id:'a1',name:'Mozzarella Sticks',cat:'Apps',price:8.99,tags:['Vegetarian'],avail:true,desc:'Golden fried with marinara dipping sauce',img:'https://images.unsplash.com/photo-1531749668029-2db88e4276c7?w=100&h=100&fit=crop',mods:['Extra marinara']},
+  {id:'a2',name:'Wings Basket',cat:'Apps',price:11.99,tags:['GF','Spicy','Popular'],avail:true,desc:'Buffalo or honey garlic, celery and ranch',img:'https://images.unsplash.com/photo-1567620832903-9fc6debc209f?w=100&h=100&fit=crop',mods:['Buffalo','Honey garlic','Extra crispy','Ranch on side']},
+  {id:'d1',name:'Fresh Lemonade',cat:'Drinks',price:4.99,tags:[],avail:true,desc:'House-squeezed with mint',img:'https://images.unsplash.com/photo-1621263764928-df1444c5e859?w=100&h=100&fit=crop',mods:['Less ice','Extra mint']},
+  {id:'d2',name:'Iced Coffee',cat:'Drinks',price:5.49,tags:[],avail:true,desc:'Cold brew with oat milk',img:'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=100&h=100&fit=crop',mods:['Oat milk','Almond milk','Extra shot']},
+];
+
+var tables = [
+  {id:'T01',name:'Table 1',status:'occupied',order:1003,guests:2},
+  {id:'T02',name:'Table 2',status:'empty',order:null,guests:0},
+  {id:'T03',name:'Table 3',status:'waiting',order:1001,guests:4},
+  {id:'T04',name:'Table 4',status:'empty',order:null,guests:0},
+  {id:'T05',name:'Table 5',status:'empty',order:null,guests:0},
+  {id:'T06',name:'Table 6',status:'empty',order:null,guests:0},
+  {id:'T07',name:'Table 7',status:'waiting',order:1002,guests:2},
+  {id:'T08',name:'Table 8',status:'empty',order:null,guests:0},
+  {id:'P01',name:'Patio 1',status:'empty',order:null,guests:0},
+  {id:'P02',name:'Patio 2',status:'occupied',order:1004,guests:3},
+  {id:'B01',name:'Bar 1',status:'empty',order:null,guests:0},
+  {id:'B02',name:'Bar 2',status:'empty',order:null,guests:0},
+];
+
+// ===== NAVIGATION =====
+function goPage(id){
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active')});
+  var page=document.getElementById('page-'+id);
+  page.classList.add('active');
+  showPageLoading(id);
+  document.querySelectorAll('.sb-nav .sb-item').forEach(function(s){s.classList.remove('active')});
+  if(event&&event.currentTarget) event.currentTarget.classList.add('active');
+  var titles={orders:'Orders',eighty6:'86 Board',menu:'Menu',tables:'Tables',analytics:'Analytics',settings:'Settings',qrcodes:'QR Codes',history:'Order History',billing:'Billing'};
+  document.getElementById('pageTitle').textContent=titles[id]||id;
+  closeSidebar();
+}
+
+// ===== SIDEBAR TOGGLE (tablet) =====
+function toggleSidebar(){
+  document.querySelector('.sidebar').classList.toggle('open');
+  document.getElementById('sbBackdrop').classList.toggle('open');
+}
+function closeSidebar(){
+  document.querySelector('.sidebar').classList.remove('open');
+  document.getElementById('sbBackdrop').classList.remove('open');
+}
+
+// ===== AUDIO =====
+function toggleAudio(){
+  audioEnabled=!audioEnabled;
+  document.getElementById('audioBtn').classList.toggle('muted',!audioEnabled);
+}
+function playAlert(){
+  if(!audioEnabled) return;
+  try{
+    var ctx=new(window.AudioContext||window.webkitAudioContext)();
+    var o=ctx.createOscillator();var g=ctx.createGain();
+    o.connect(g);g.connect(ctx.destination);
+    o.type='sine';o.frequency.setValueAtTime(880,ctx.currentTime);
+    o.frequency.setValueAtTime(1100,ctx.currentTime+0.1);
+    g.gain.setValueAtTime(0.3,ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.01,ctx.currentTime+0.4);
+    o.start(ctx.currentTime);o.stop(ctx.currentTime+0.4);
+  }catch(e){}
+}
+
+// ===== CLOCK =====
+function updateClock(){
+  var now=new Date();
+  var h=now.getHours(),m=now.getMinutes();
+  var ampm=h>=12?'PM':'AM';
+  h=h%12;if(h===0)h=12;
+  document.getElementById('tbClock').textContent=h+':'+(m<10?'0':'')+m+' '+ampm;
+}
+setInterval(updateClock,1000);
+updateClock();
+
+// ===== ORDERS RENDERING =====
+function getTimeClass(min){
+  if(min<=3)return'fresh';
+  if(min<=8)return'warm';
+  return'hot';
+}
+function getNextAction(status){
+  if(status==='new')return{label:'Accept',next:'accepted'};
+  if(status==='accepted')return{label:'Start Prep',next:'preparing'};
+  if(status==='preparing')return{label:'Ready',next:'ready'};
+  if(status==='ready')return{label:'Served',next:'served'};
+  return null;
+}
+function renderOrders(){
+  var cols={new:[],accepted:[],preparing:[],ready:[],served:[]};
+  orders.forEach(function(o){if(cols[o.status])cols[o.status].push(o)});
+  Object.keys(cols).forEach(function(status){
+    var body=document.getElementById('body-'+status);
+    var arr=cols[status];
+    document.getElementById('cnt-'+status).textContent=arr.length;
+    if(!arr.length){
+      var emptyMsg=status==='new'?'Waiting for orders'+(orders.length===0?'<div style="margin-top:6px;font-size:11px;color:var(--accent);cursor:pointer" onclick="simulateOrder()">Tap here or press N to simulate</div>':''):status==='served'?'Completed orders appear here':'No orders';
+      body.innerHTML='<div class="kc-empty"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="1"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/></svg>'+emptyMsg+'</div>';
+      return;
+    }
+    body.innerHTML=arr.map(function(o){
+      var act=getNextAction(o.status);
+      var tc=getTimeClass(o.time);
+      var html='<div class="order-card" id="order-'+o.id+'" draggable="true" ondragstart="dragStart(event,'+o.id+')" ondragend="dragEnd(event)" onclick="openOrderDetail('+o.id+')">';
+      html+='<div class="oc-order-num">#'+o.id+'</div>';
+      html+='<div class="oc-top"><div class="oc-table">'+o.table+'</div><div class="oc-time '+tc+'">'+o.time+'m</div></div>';
+      if(o.special) html+='<div class="oc-special"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/></svg>'+o.special+'</div>';
+      html+='<div class="oc-items">';
+      o.items.forEach(function(it){
+        html+='<div class="oc-item"><span class="oc-item-qty">'+it.qty+'x</span>'+it.name+(it.mod?'<span class="oc-item-mod">'+it.mod+'</span>':'')+'</div>';
+      });
+      html+='</div>';
+      html+='<div class="oc-actions">';
+      if(act) html+='<button class="oc-action primary" onclick="event.stopPropagation();advanceOrder('+o.id+')">'+act.label+'</button>';
+      if(o.status==='new') html+='<button class="oc-action secondary" onclick="event.stopPropagation();cancelOrder('+o.id+')">Decline</button>';
+      html+='</div></div>';
+      return html;
+    }).join('');
+  });
+  // Update stats
+  var active=orders.filter(function(o){return o.status!=='served'}).length;
+  document.getElementById('statActive').textContent=active;
+  document.getElementById('sbOrderCount').textContent=active;
+  // avg wait
+  var waits=orders.filter(function(o){return o.status!=='served'});
+  if(waits.length){
+    var avg=Math.round(waits.reduce(function(a,o){return a+o.time},0)/waits.length);
+    document.getElementById('statAvgWait').textContent=avg+'m';
+  }
+  document.getElementById('statServed').textContent=servedCount;
+  document.getElementById('statRevenue').textContent='$'+revenue;
+  renderMobileOrders();
+}
+
+function advanceOrder(id){
+  var o=orders.find(function(x){return x.id===id});
+  if(!o)return;
+  var act=getNextAction(o.status);
+  if(act){
+    var statusLabels={accepted:'Order accepted',preparing:'Prep started',ready:'Order ready',served:'Order served'};
+    o.status=act.next;
+    if(act.next==='served'){
+      servedCount++;
+      var total=o.items.reduce(function(a,it){return a+it.price*it.qty},0);
+      revenue+=Math.round(total);
+    }
+    renderOrders();
+    updateTables();
+    showToast(statusLabels[act.next]||'Order updated');
+  }
+}
+function cancelOrder(id){
+  showConfirm('Decline order?','This will remove the order and notify the customer.','Decline',function(){
+    orders=orders.filter(function(x){return x.id!==id});
+    renderOrders();updateTables();
+    showToast('Order declined');
+  });
+}
+
+// Timer
+setInterval(function(){
+  orders.forEach(function(o){if(o.status!=='served')o.time++});
+  renderOrders();
+},60000);
+
+// ===== DRAG AND DROP =====
+var dragOrderId=null;
+function dragStart(e,id){
+  dragOrderId=id;
+  e.target.classList.add('dragging');
+  e.dataTransfer.effectAllowed='move';
+}
+function dragEnd(e){
+  e.target.classList.remove('dragging');
+  document.querySelectorAll('.kc-body').forEach(function(b){b.classList.remove('drag-over')});
+}
+// Setup drop zones
+document.addEventListener('DOMContentLoaded',function(){
+  var statuses=['new','accepted','preparing','ready','served'];
+  statuses.forEach(function(s){
+    var body=document.getElementById('body-'+s);
+    body.addEventListener('dragover',function(e){e.preventDefault();e.dataTransfer.dropEffect='move';body.classList.add('drag-over')});
+    body.addEventListener('dragleave',function(){body.classList.remove('drag-over')});
+    body.addEventListener('drop',function(e){
+      e.preventDefault();
+      body.classList.remove('drag-over');
+      if(dragOrderId!==null){
+        var o=orders.find(function(x){return x.id===dragOrderId});
+        if(o){
+          if(s==='served'&&o.status!=='served'){
+            servedCount++;
+            var total=o.items.reduce(function(a,it){return a+it.price*it.qty},0);
+            revenue+=Math.round(total);
+          }
+          o.status=s;
+          renderOrders();
+          updateTables();
+        }
+        dragOrderId=null;
+      }
+    });
+  });
+});
+
+// ===== ORDER DETAIL MODAL =====
+function openOrderDetail(id){
+  var o=orders.find(function(x){return x.id===id});
+  if(!o) return;
+  document.getElementById('odTitle').textContent='Order #'+o.id+' \u2014 '+o.table;
+  var total=o.items.reduce(function(a,it){return a+it.price*it.qty},0);
+  var html='<div class="od-row"><div class="od-row-label">Status</div><div class="od-row-val" style="text-transform:capitalize">'+o.status+'</div></div>';
+  html+='<div class="od-row"><div class="od-row-label">Time in queue</div><div class="od-row-val">'+o.time+' min</div></div>';
+  html+='<div class="od-row"><div class="od-row-label">Items</div><div class="od-row-val">'+o.items.reduce(function(a,it){return a+it.qty},0)+' items</div></div>';
+  html+='<div class="od-row"><div class="od-row-label">Order total</div><div class="od-row-val" style="color:var(--accent)">$'+total.toFixed(2)+'</div></div>';
+  if(o.special) html+='<div class="od-special-box"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/></svg>'+o.special+'</div>';
+  html+='<div class="od-section"><div class="od-section-title">Items</div>';
+  o.items.forEach(function(it){
+    html+='<div class="od-item"><div class="od-item-qty">'+it.qty+'x</div><div><div class="od-item-name">'+it.name+'</div>'+(it.mod?'<div class="od-item-mod">'+it.mod+'</div>':'')+'</div><div class="od-item-price">$'+(it.price*it.qty).toFixed(2)+'</div></div>';
+  });
+  html+='</div>';
+  document.getElementById('odBody').innerHTML=html;
+
+  // Footer actions
+  var act=getNextAction(o.status);
+  var fhtml='';
+  if(act) fhtml+='<button class="oc-action primary" onclick="advanceOrder('+o.id+');closeOrderDetail()">'+act.label+'</button>';
+  if(o.status==='new') fhtml+='<button class="oc-action secondary" onclick="cancelOrder('+o.id+');closeOrderDetail()">Decline</button>';
+  fhtml+='<button class="oc-action secondary" onclick="printReceipt('+o.id+')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg></button>';
+  fhtml+='<button class="oc-action secondary" onclick="closeOrderDetail()">Close</button>';
+  document.getElementById('odFooter').innerHTML=fhtml;
+
+  document.getElementById('odOverlay').classList.add('open');
+}
+function closeOrderDetail(){
+  document.getElementById('odOverlay').classList.remove('open');
+}
+
+// ===== SIMULATE NEW ORDER =====
+var sampleOrders = [
+  {table:'Table 2',items:[{qty:1,name:'Mushroom Swiss',mod:'Well done',price:13.49},{qty:1,name:'Fresh Lemonade',mod:'',price:4.99}],special:''},
+  {table:'Table 5',items:[{qty:2,name:'Chicken Tacos',mod:'Extra spicy',price:11.49},{qty:1,name:'Burrito Bowl',mod:'No sour cream',price:12.99},{qty:1,name:'Iced Coffee',mod:'',price:5.49}],special:'Gluten-free request'},
+  {table:'Bar 1',items:[{qty:1,name:'Wings Basket',mod:'Honey garlic',price:11.99},{qty:2,name:'Iced Coffee',mod:'Oat milk',price:5.49}],special:''},
+  {table:'Table 6',items:[{qty:1,name:'Pepperoni',mod:'',price:15.99},{qty:1,name:'Mozzarella Sticks',mod:'',price:8.99},{qty:1,name:'Fresh Lemonade',mod:'',price:4.99}],special:'Birthday celebration'},
+  {table:'Patio 1',items:[{qty:2,name:'Margherita Pizza',mod:'',price:14.99},{qty:1,name:'Greek Salad',mod:'',price:10.49}],special:''},
+  {table:'Table 4',items:[{qty:1,name:'Classic Burger',mod:'Extra cheese',price:12.99},{qty:1,name:'Loaded Nachos',mod:'',price:10.99}],special:'Dairy allergy'},
+];
+var simIdx=0;
+function simulateOrder(){
+  var template=sampleOrders[simIdx%sampleOrders.length];
+  simIdx++;
+  var newOrder={
+    id:nextOrderId++,
+    table:template.table,
+    status:'new',
+    items:template.items.map(function(i){return{qty:i.qty,name:i.name,mod:i.mod,price:i.price}}),
+    time:0,
+    special:template.special
+  };
+  orders.unshift(newOrder);
+  renderOrders();
+  // Flash the New column
+  var col=document.getElementById('col-new');
+  col.classList.remove('kc-flash');
+  void col.offsetWidth;
+  col.classList.add('kc-flash');
+  // Flash the card
+  var card=document.getElementById('order-'+newOrder.id);
+  if(card){card.classList.add('new-flash')}
+  // Sound
+  playAlert();
+  // Notification banner
+  showNotif(newOrder.table, newOrder.items.reduce(function(a,i){return a+i.qty},0)+' items'+(newOrder.special?' \u2022 '+newOrder.special:''));
+  // Update table
+  var t=tables.find(function(x){return x.name===template.table&&x.status==='empty'});
+  if(t){t.status='waiting';t.order=newOrder.id;t.guests=Math.floor(Math.random()*4)+1;}
+  updateTables();
+}
+
+// ===== NOTIFICATION BANNER =====
+var notifTimer=null;
+function showNotif(title, sub){
+  document.getElementById('notifText').textContent='New order from '+title;
+  document.getElementById('notifSub').textContent=sub;
+  document.getElementById('notifBanner').classList.add('show');
+  if(notifTimer) clearTimeout(notifTimer);
+  notifTimer=setTimeout(hideNotif, 5000);
+}
+function hideNotif(){
+  document.getElementById('notifBanner').classList.remove('show');
+  if(notifTimer){clearTimeout(notifTimer);notifTimer=null;}
+}
+function goPageDirect(id){
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active')});
+  document.getElementById('page-'+id).classList.add('active');
+  document.querySelectorAll('.sb-nav .sb-item').forEach(function(s){
+    s.classList.remove('active');
+    if(s.textContent.toLowerCase().indexOf(id)>-1) s.classList.add('active');
+  });
+  var titles={orders:'Orders',eighty6:'86 Board',menu:'Menu',tables:'Tables',analytics:'Analytics',settings:'Settings',qrcodes:'QR Codes',history:'Order History',billing:'Billing'};
+  document.getElementById('pageTitle').textContent=titles[id]||id;
+}
+
+// ===== 86 BOARD =====
+function render86(){
+  var filter=document.getElementById('e6Filter').value;
+  var searchQ=(document.getElementById('e6Search').value||'').toLowerCase();
+  var filtered=menuItems.filter(function(it){
+    if(filter==='available'&&!it.avail) return false;
+    if(filter==='86d'&&it.avail) return false;
+    if(searchQ&&it.name.toLowerCase().indexOf(searchQ)===-1) return false;
+    return true;
+  });
+
+  // Group by category
+  var groups={};
+  filtered.forEach(function(it){
+    if(!groups[it.cat]) groups[it.cat]=[];
+    groups[it.cat].push(it);
+  });
+
+  var container=document.getElementById('e6Groups');
+  var html='';
+  Object.keys(groups).forEach(function(cat){
+    var items=groups[cat];
+    var unavailInGroup=items.filter(function(i){return!i.avail}).length;
+    html+='<div class="e86-group">';
+    html+='<div class="e86-group-header"><div class="e86-group-name">'+cat+'</div><div class="e86-group-count">'+items.length+' items</div>';
+    if(unavailInGroup>0) html+='<div class="e86-group-86">'+unavailInGroup+' 86\'d</div>';
+    html+='</div>';
+    html+='<div class="e86-list">';
+    items.forEach(function(it){
+      html+='<div class="e86-item '+(it.avail?'':'off')+'">';
+      html+='<div class="e86-item-img">'+(it.img?'<img src="'+it.img+'" onerror="this.style.display=\'none\'">':'')+'</div>';
+      html+='<div class="e86-item-info"><div class="e86-item-name">'+it.name+'</div>';
+      html+='<div class="e86-item-meta"><span class="e86-item-price">$'+it.price.toFixed(2)+'</span>';
+      if(it.e6Time&&!it.avail) html+='<span class="e86-item-time">86\'d at '+it.e6Time+'</span>';
+      html+='</div></div>';
+      html+='<button class="e86-toggle '+(it.avail?'':'off')+'" onclick="toggle86(\''+it.id+'\')"></button>';
+      html+='</div>';
+    });
+    html+='</div></div>';
+  });
+
+  if(!html) html='<div style="text-align:center;padding:40px;color:var(--text3)">No items match your filters</div>';
+  container.innerHTML=html;
+
+  // Stats
+  var avail=menuItems.filter(function(it){return it.avail}).length;
+  var unavail=menuItems.length-avail;
+  document.getElementById('e6AvailCount').textContent=avail;
+  document.getElementById('e6UnavailCount').textContent=unavail;
+  document.getElementById('e6TotalCount').textContent=menuItems.length;
+  document.getElementById('sb86Alert').style.display=unavail>0?'block':'none';
+}
+// Shared ingredient map — key ingredients and which items use them
+var ingredientMap = {
+  'Mozzarella': ['p1','p2','p3','a1','m2'],
+  'Beef patty': ['b1','b2','b3'],
+  'Burger bun': ['b1','b2','b3'],
+  'Pizza dough': ['p1','p2','p3'],
+  'Lettuce': ['b1','s1','m1'],
+  'Tortilla': ['m1','m2'],
+  'Guacamole': ['m1','m2','m3'],
+  'Sour cream': ['m2','m3'],
+  'Chicken': ['m1','m3','s1'],
+  'Feta': ['s2'],
+  'Lemon': ['d1','s2'],
+  'Coffee': ['d2'],
+  'Oat milk': ['d2'],
+};
+
+function toggle86(id){
+  var it=menuItems.find(function(x){return x.id===id});
+  if(!it) return;
+
+  // If turning back ON, just do it
+  if(!it.avail){
+    it.avail=true;
+    it.e6Time=null;
+    render86();renderMenuTable();
+    showToast(it.name+' is back on menu');
+    return;
+  }
+
+  // Turning OFF — check for related items
+  var related=[];
+  Object.keys(ingredientMap).forEach(function(ingredient){
+    var itemIds=ingredientMap[ingredient];
+    if(itemIds.indexOf(id)>-1){
+      itemIds.forEach(function(rid){
+        if(rid!==id){
+          var ri=menuItems.find(function(x){return x.id===rid});
+          if(ri&&ri.avail&&related.indexOf(ri)===-1){
+            ri._sharedIngredient=ingredient;
+            related.push(ri);
+          }
+        }
+      });
+    }
+  });
+
+  // 86 the item first
+  it.avail=false;
+  var now=new Date();
+  var h=now.getHours()%12;if(h===0)h=12;
+  it.e6Time=h+':'+(now.getMinutes()<10?'0':'')+now.getMinutes()+(now.getHours()>=12?' PM':' AM');
+  render86();renderMenuTable();
+  showToast(it.name+' has been 86\'d');
+
+  // If there are related items, show prompt
+  if(related.length>0){
+    // Group by shared ingredient
+    var byIngredient={};
+    Object.keys(ingredientMap).forEach(function(ingredient){
+      var itemIds=ingredientMap[ingredient];
+      if(itemIds.indexOf(id)>-1){
+        related.forEach(function(r){
+          if(itemIds.indexOf(r.id)>-1){
+            if(!byIngredient[ingredient]) byIngredient[ingredient]=[];
+            if(byIngredient[ingredient].indexOf(r)===-1) byIngredient[ingredient].push(r);
+          }
+        });
+      }
+    });
+
+    var msgHtml='<div style="font-size:13px;color:var(--text2);margin-bottom:14px"><strong>'+it.name+'</strong> shares ingredients with these available items:</div>';
+    Object.keys(byIngredient).forEach(function(ing){
+      msgHtml+='<div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.3px;margin-bottom:6px;margin-top:10px">'+ing+'</div>';
+      byIngredient[ing].forEach(function(r){
+        msgHtml+='<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)"><div style="flex:1"><span style="font-weight:600;font-size:13px">'+r.name+'</span><span style="color:var(--text3);font-size:12px;margin-left:6px">'+r.cat+'</span></div><button class="confirm-btn danger" style="height:28px;padding:0 12px;font-size:11px" onclick="quick86(\''+r.id+'\');this.textContent=\'Done\';this.disabled=true;this.style.opacity=0.5">86 this</button></div>';
+      });
+    });
+
+    document.getElementById('confirmTitle').textContent='Related items may be affected';
+    document.getElementById('confirmMsg').innerHTML=msgHtml;
+    var actBtn=document.getElementById('confirmAction');
+    actBtn.textContent='86 All ('+related.length+')';
+    actBtn.className='confirm-btn danger';
+    actBtn.onclick=function(){
+      related.forEach(function(r){quick86(r.id)});
+      closeConfirm();
+      showToast(related.length+' related items 86\'d');
+    };
+    document.getElementById('confirmOverlay').classList.add('open');
+  }
+}
+function quick86(id){
+  var it=menuItems.find(function(x){return x.id===id});
+  if(!it) return;
+  var now=new Date();
+  var h=now.getHours()%12;if(h===0)h=12;
+  it.avail=false;
+  it.e6Time=h+':'+(now.getMinutes()<10?'0':'')+now.getMinutes()+(now.getHours()>=12?' PM':' AM');
+  render86();renderMenuTable();
+}
+
+// ===== MENU =====
+var menuCatFilter='All';
+function renderMenuCats(){
+  var cats=['All'];
+  menuItems.forEach(function(it){if(cats.indexOf(it.cat)===-1)cats.push(it.cat)});
+  document.getElementById('menuCats').innerHTML=cats.map(function(c){
+    return '<div class="menu-cat '+(c===menuCatFilter?'active':'')+'" onclick="setMenuCat(\''+c+'\')">'+c+'</div>';
+  }).join('');
+}
+function setMenuCat(c){menuCatFilter=c;renderMenuCats();renderMenuTable();}
+function renderMenuTable(){
+  var filtered=menuItems.filter(function(it){return menuCatFilter==='All'||it.cat===menuCatFilter});
+  document.getElementById('menuBody').innerHTML=filtered.map(function(it){
+    var tagColors={Popular:'var(--accent)',Vegetarian:'var(--green)',GF:'var(--purple)',Spicy:'var(--red)',Vegan:'var(--green)',New:'var(--blue)'};
+    var tagHtml=it.tags.map(function(t){return'<span class="mt-tag" style="background:'+((tagColors[t]||'var(--blue)')+'18')+';color:'+(tagColors[t]||'var(--blue)')+'">'+t+'</span>'}).join(' ');
+    var mods=(it.mods||[]).slice(0,3).join(', ');
+    if((it.mods||[]).length>3) mods+=' +'+((it.mods||[]).length-3);
+    return '<tr><td><div class="mt-item"><div class="mt-img">'+(it.img?'<img src="'+it.img+'" onerror="this.style.display=\'none\'">':'')+'</div><div><div class="mt-name">'+it.name+'</div>'+(it.desc?'<div class="mt-desc">'+it.desc+'</div>':'')+'</div></div></td>'+
+      '<td style="color:var(--text2)">'+it.cat+'</td>'+
+      '<td style="font-weight:600">$'+it.price.toFixed(2)+'</td>'+
+      '<td>'+tagHtml+'</td>'+
+      '<td style="color:var(--text3);font-size:12px">'+(mods||'—')+'</td>'+
+      '<td><span style="color:'+(it.avail?'var(--green)':'var(--red)')+';font-size:12px;font-weight:600">'+(it.avail?'Available':'86\'d')+'</span></td>'+
+      '<td><div class="mt-actions">'+
+        '<div class="mt-btn" title="Edit" onclick="openMenuModal(\''+it.id+'\')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div>'+
+        '<div class="mt-btn" title="Toggle" onclick="toggle86(\''+it.id+'\')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">'+(it.avail?'<path d="M1 1l22 22M17.94 17.94A10 10 0 016.06 6.06"/>':'<circle cx="12" cy="12" r="10"/>')+'</svg></div>'+
+      '</div></td></tr>';
+  }).join('');
+}
+function filterMenu(q){
+  q=q.toLowerCase();
+  document.querySelectorAll('#menuBody tr').forEach(function(r){
+    var name=r.querySelector('.mt-name');
+    r.style.display=name&&name.textContent.toLowerCase().includes(q)?'':'none';
+  });
+}
+
+// ===== TABLES =====
+function renderTables(){
+  document.getElementById('tablesGrid').innerHTML=tables.map(function(t){
+    var cls=t.status==='occupied'?'occupied':t.status==='waiting'?'waiting':'';
+    var info='';
+    if(t.order){
+      var o=orders.find(function(x){return x.id===t.order});
+      if(o) info=o.items.length+' items \u2022 '+o.time+'m ago';
+    }
+    return '<div class="table-card '+cls+'" onclick="openTableDetail(\''+t.id+'\')">'+
+      '<div class="tc-number">'+t.name+'</div>'+
+      '<div class="tc-status '+t.status+'">'+t.status.charAt(0).toUpperCase()+t.status.slice(1)+'</div>'+
+      (t.guests?'<div class="tc-info">'+t.guests+' guests</div>':'')+
+      (info?'<div class="tc-items">'+info+'</div>':'')+
+      (t.status==='empty'?'<div style="margin-top:6px;font-size:11px;color:var(--red);cursor:pointer" onclick="event.stopPropagation();removeTable(\''+t.id+'\')">Remove</div>':'')+
+    '</div>';
+  }).join('');
+}
+function updateTables(){
+  tables.forEach(function(t){
+    if(t.order){
+      var o=orders.find(function(x){return x.id===t.order});
+      if(!o||o.status==='served'){t.status='empty';t.order=null;t.guests=0;}
+    }
+  });
+  renderTables();
+}
+
+// ===== TABLE DETAIL MODAL =====
+function openTableDetail(tid){
+  var t=tables.find(function(x){return x.id===tid});
+  if(!t) return;
+  document.getElementById('tdName').textContent=t.name;
+  var pill=document.getElementById('tdStatus');
+  pill.textContent=t.status.charAt(0).toUpperCase()+t.status.slice(1);
+  pill.style.background=t.status==='occupied'?'#22c55e18':t.status==='waiting'?'#eab30818':'var(--bg3)';
+  pill.style.color=t.status==='occupied'?'var(--green)':t.status==='waiting'?'var(--yellow)':'var(--text3)';
+
+  var html='';
+  html+='<div class="td-row"><div class="td-row-label">Status</div><div class="td-row-val" style="text-transform:capitalize">'+t.status+'</div></div>';
+  html+='<div class="td-row"><div class="td-row-label">Guests</div><div class="td-row-val">'+(t.guests||'—')+'</div></div>';
+
+  if(t.order){
+    var o=orders.find(function(x){return x.id===t.order});
+    if(o){
+      var total=o.items.reduce(function(a,it){return a+it.price*it.qty},0);
+      html+='<div class="td-row"><div class="td-row-label">Order</div><div class="td-row-val" style="color:var(--accent)">#'+o.id+'</div></div>';
+      html+='<div class="td-row"><div class="td-row-label">Order status</div><div class="td-row-val" style="text-transform:capitalize">'+o.status+'</div></div>';
+      html+='<div class="td-row"><div class="td-row-label">Time</div><div class="td-row-val">'+o.time+' min</div></div>';
+      html+='<div class="td-row"><div class="td-row-label">Total</div><div class="td-row-val">$'+total.toFixed(2)+'</div></div>';
+      html+='<div class="td-order-items" style="margin-top:12px">';
+      o.items.forEach(function(it){
+        html+='<div class="td-order-item"><span>'+it.qty+'x</span> '+it.name+(it.mod?' <span style="color:var(--text3);font-style:italic">'+it.mod+'</span>':'')+'</div>';
+      });
+      html+='</div>';
+      if(o.special) html+='<div style="margin-top:10px;padding:8px 10px;background:var(--yellow)10;border:1px solid var(--yellow)33;border-radius:6px;font-size:12px;color:var(--yellow)">'+o.special+'</div>';
+    }
+  } else {
+    html+='<div style="text-align:center;padding:20px 0;color:var(--text3);font-size:13px">No active session</div>';
+  }
+  document.getElementById('tdBody').innerHTML=html;
+
+  // Footer
+  var fhtml='';
+  if(t.order){
+    var o=orders.find(function(x){return x.id===t.order});
+    if(o){
+      var act=getNextAction(o.status);
+      if(act) fhtml+='<button class="td-btn primary" onclick="advanceOrder('+o.id+');closeTableDetail();renderTables()">'+act.label+'</button>';
+    }
+    fhtml+='<button class="td-btn danger" onclick="closeTable(\''+tid+'\')">Close Table</button>';
+  } else {
+    fhtml+='<button class="td-btn secondary" onclick="closeTableDetail()">Close</button>';
+  }
+  document.getElementById('tdFooter').innerHTML=fhtml;
+  document.getElementById('tdOverlay').classList.add('open');
+}
+function closeTableDetail(){
+  document.getElementById('tdOverlay').classList.remove('open');
+}
+function closeTable(tid){
+  showConfirm('Close this table?','This will mark the table as empty and the order as served.','Close Table',function(){
+    var t=tables.find(function(x){return x.id===tid});
+    if(t){
+      if(t.order){
+        var o=orders.find(function(x){return x.id===t.order});
+        if(o){
+          o.status='served';
+          servedCount++;
+          var total=o.items.reduce(function(a,it){return a+it.price*it.qty},0);
+          revenue+=Math.round(total);
+        }
+      }
+      t.status='empty';t.order=null;t.guests=0;
+    }
+    closeTableDetail();
+    renderOrders();
+    renderTables();
+    showToast('Table closed');
+  });
+}
+
+// ===== MENU ITEM MODAL =====
+var editingMenuId=null;
+function openMenuModal(id){
+  editingMenuId=id||null;
+  if(id){
+    var it=menuItems.find(function(x){return x.id===id});
+    if(!it) return;
+    document.getElementById('miTitle').textContent='Edit Item';
+    document.getElementById('miName').value=it.name;
+    document.getElementById('miPrice').value=it.price;
+    document.getElementById('miCat').value=it.cat;
+    document.getElementById('miDesc').value=it.desc||'';
+    document.getElementById('miImg').value=it.img||'';
+    document.getElementById('miMods').value=(it.mods||[]).join(', ');
+    document.getElementById('miAllergens').value=(it.allergens||[]).join(', ');
+    document.querySelectorAll('#miTags .mi-tag').forEach(function(tag){
+      var t=tag.textContent;
+      if(it.tags.indexOf(t)>-1){tag.className='mi-tag on'}else{tag.className='mi-tag off'}
+    });
+    document.getElementById('miFooter').innerHTML='<button class="mi-btn danger" onclick="deleteMenuItem(\''+id+'\')">Delete</button><button class="mi-btn secondary" onclick="closeMenuModal()">Cancel</button><button class="mi-btn primary" onclick="saveMenuItem()">Save Changes</button>';
+  } else {
+    document.getElementById('miTitle').textContent='Add Item';
+    document.getElementById('miName').value='';
+    document.getElementById('miPrice').value='';
+    document.getElementById('miCat').value='Burgers';
+    document.getElementById('miDesc').value='';
+    document.getElementById('miImg').value='';
+    document.getElementById('miMods').value='';
+    document.getElementById('miAllergens').value='';
+    document.querySelectorAll('#miTags .mi-tag').forEach(function(tag){tag.className='mi-tag off'});
+    document.getElementById('miFooter').innerHTML='<button class="mi-btn secondary" onclick="closeMenuModal()">Cancel</button><button class="mi-btn primary" onclick="saveMenuItem()">Add Item</button>';
+  }
+  document.getElementById('miOverlay').classList.add('open');
+  setTimeout(function(){document.getElementById('miName').focus()},150);
+}
+function closeMenuModal(){
+  document.getElementById('miOverlay').classList.remove('open');
+  editingMenuId=null;
+}
+function saveMenuItem(){
+  var name=document.getElementById('miName').value.trim();
+  var price=parseFloat(document.getElementById('miPrice').value);
+  if(!name||isNaN(price)){showToast('Name and price are required');return}
+  var cat=document.getElementById('miCat').value;
+  var desc=document.getElementById('miDesc').value.trim();
+  var img=document.getElementById('miImg').value.trim();
+  var tags=[];
+  document.querySelectorAll('#miTags .mi-tag.on').forEach(function(t){tags.push(t.textContent)});
+  var mods=document.getElementById('miMods').value.split(',').map(function(s){return s.trim()}).filter(Boolean);
+  var allergens=document.getElementById('miAllergens').value.split(',').map(function(s){return s.trim()}).filter(Boolean);
+  var wasEditing=editingMenuId;
+  if(editingMenuId){
+    var it=menuItems.find(function(x){return x.id===editingMenuId});
+    if(it){it.name=name;it.price=price;it.cat=cat;it.desc=desc;it.img=img;it.tags=tags;it.mods=mods;it.allergens=allergens;}
+  } else {
+    var newId='custom_'+Date.now();
+    menuItems.push({id:newId,name:name,cat:cat,price:price,tags:tags,avail:true,img:img,desc:desc,mods:mods,allergens:allergens});
+  }
+  closeMenuModal();
+  renderMenuCats();renderMenuTable();render86();
+  showToast(wasEditing?'Item updated':'Item added');
+}
+function deleteMenuItem(id){
+  var it=menuItems.find(function(x){return x.id===id});
+  var name=it?it.name:'this item';
+  showConfirm('Delete '+name+'?','This will permanently remove the item from your menu.','Delete',function(){
+    menuItems=menuItems.filter(function(x){return x.id!==id});
+    closeMenuModal();
+    renderMenuCats();
+    renderMenuTable();
+    render86();
+    showToast(name+' deleted');
+  });
+}
+
+// ===== ANALYTICS =====
+var anRange='today';
+var anData={
+  today:{orders:27,rev:847,avg:'6m',rating:4.8,oSub:'+12% vs yesterday',rSub:'Avg ticket $31.37',wSub:'Target: under 10m',ratSub:'Based on 14 reviews',period:'March 20, 2026',hours:[3,7,5,2,1,4,8,12,9,6]},
+  week:{orders:189,rev:5842,avg:'7m',rating:4.7,oSub:'+8% vs last week',rSub:'Avg ticket $30.90',wSub:'-1m vs last week',ratSub:'Based on 87 reviews',period:'Mar 14 - Mar 20, 2026',hours:[18,24,20,15,12,22,28,35,30,22]},
+  month:{orders:847,rev:26540,avg:'7m',rating:4.8,oSub:'+15% vs last month',rSub:'Avg ticket $31.33',wSub:'On target',ratSub:'Based on 342 reviews',period:'March 2026',hours:[65,88,72,48,40,78,105,130,112,80]},
+};
+function setAnRange(range,el){
+  anRange=range;
+  document.querySelectorAll('#anDateRange .menu-cat').forEach(function(c){c.classList.remove('active')});
+  el.classList.add('active');
+  renderAnalytics();
+}
+function renderAnalytics(){
+  var d=anData[anRange];
+  document.getElementById('anOrders').textContent=d.orders;
+  document.getElementById('anRevenue').textContent='$'+d.rev.toLocaleString();
+  document.getElementById('anWait').textContent=d.avg;
+  document.getElementById('anRepeat').textContent=anRange==='today'?'38%':anRange==='week'?'42%':'45%';
+  document.getElementById('anRepeatSub').textContent=anRange==='today'?'6 of 16 customers':anRange==='week'?'34 of 81 customers':'156 of 347 customers';
+  document.getElementById('anOrdersSub').textContent=d.oSub;
+  document.getElementById('anRevenueSub').textContent=d.rSub;
+  document.getElementById('anWaitSub').textContent=d.wSub;
+  document.getElementById('anPeriodLabel').textContent=d.period;
+  document.getElementById('anCustCount').textContent=anRange==='today'?'16 unique customers today':anRange==='week'?'81 customers this week':'347 customers this month';
+
+  // Hours bar chart
+  var hours=['11a','12p','1p','2p','3p','4p','5p','6p','7p','8p'];
+  var vals=d.hours;var max=Math.max.apply(null,vals);
+  document.getElementById('anBars').innerHTML=hours.map(function(h,i){
+    var pct=Math.round((vals[i]/max)*120);
+    return '<div class="an-bar-col"><div class="an-bar" style="height:'+pct+'px"></div><div class="an-bar-label">'+h+'</div></div>';
+  }).join('');
+
+  // Day of week bars
+  var days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  var dayVals=anRange==='today'?[22,28,24,27,31,38,35]:anRange==='week'?[22,28,24,27,31,38,35]:[88,105,96,112,124,148,142];
+  var dayMax=Math.max.apply(null,dayVals);
+  document.getElementById('anDayBars').innerHTML=days.map(function(dd,i){
+    var pct=Math.round((dayVals[i]/dayMax)*70);
+    var isToday=(i===(new Date().getDay()+6)%7);
+    return '<div class="an-bar-col"><div class="an-bar" style="height:'+pct+'px;background:'+(isToday?'var(--accent)':'var(--blue)')+'"></div><div class="an-bar-label" style="'+(isToday?'color:var(--accent);font-weight:600':'')+'">'+dd+'</div></div>';
+  }).join('');
+
+  // HEATMAP
+  var hmHours=['10a','11a','12p','1p','2p','3p','4p','5p','6p','7p','8p','9p','10p','11p'];
+  var hmDays=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  var hmData=[
+    [0,1,3,2,1,0,0,1,2,3,2,1,0,0],
+    [0,1,2,3,1,1,0,1,3,4,3,1,0,0],
+    [0,2,3,2,1,0,1,2,3,3,2,1,0,0],
+    [0,1,3,3,2,1,1,2,4,5,3,2,1,0],
+    [1,2,4,3,2,1,1,3,5,5,4,3,2,1],
+    [1,3,5,4,3,2,2,4,5,5,5,4,3,1],
+    [1,2,4,3,3,2,1,3,4,5,4,3,2,0],
+  ];
+  var hmHtml='<div class="hm-label"></div>';
+  hmHours.forEach(function(h){hmHtml+='<div class="hm-col-label">'+h+'</div>'});
+  hmDays.forEach(function(day,di){
+    hmHtml+='<div class="hm-label">'+day+'</div>';
+    hmHours.forEach(function(h,hi){
+      var v=hmData[di][hi];
+      hmHtml+='<div class="hm-cell hm-'+v+'" title="'+day+' '+h+': '+['Dead','Quiet','Moderate','Busy','Very busy','Rush hour'][v]+'">'+v+'</div>';
+    });
+  });
+  document.getElementById('anHeatmap').innerHTML=hmHtml;
+
+  // HOT SELLERS
+  var hot=[
+    {name:'Classic Burger',orders:anRange==='today'?8:anRange==='week'?52:234,trend:'+18%',pct:100},
+    {name:'Wings Basket',orders:anRange==='today'?6:anRange==='week'?41:182,trend:'+24%',pct:78},
+    {name:'Margherita Pizza',orders:anRange==='today'?5:anRange==='week'?38:168,trend:'+12%',pct:65},
+    {name:'Burrito Bowl',orders:anRange==='today'?4:anRange==='week'?29:128,trend:'+31%',pct:55},
+    {name:'Chicken Tacos',orders:anRange==='today'?3:anRange==='week'?24:108,trend:'+8%',pct:46},
+  ];
+  document.getElementById('anHotSellers').innerHTML=hot.map(function(p,i){
+    return '<div class="ip-row"><div class="ip-rank" style="color:var(--green)">'+(i+1)+'</div><div class="ip-name">'+p.name+'</div><div class="ip-bar-wrap"><div class="ip-bar" style="width:'+p.pct+'%;background:var(--green)"></div></div><div class="ip-val">'+p.orders+' sold</div><div class="ip-trend" style="color:var(--green)">'+p.trend+'</div></div>';
+  }).join('');
+
+  // COLD ITEMS
+  var cold=[
+    {name:'Four Cheese Pizza',orders:anRange==='today'?1:anRange==='week'?6:22,trend:'-34%',pct:22},
+    {name:'Greek Salad',orders:anRange==='today'?1:anRange==='week'?8:31,trend:'-18%',pct:31},
+    {name:'Mushroom Swiss',orders:anRange==='today'?1:anRange==='week'?9:38,trend:'-12%',pct:38},
+    {name:'Mozzarella Sticks',orders:anRange==='today'?2:anRange==='week'?11:42,trend:'-8%',pct:42},
+    {name:'Iced Coffee',orders:anRange==='today'?2:anRange==='week'?14:56,trend:'-5%',pct:56},
+  ];
+  document.getElementById('anColdItems').innerHTML=cold.map(function(p,i){
+    return '<div class="ip-row"><div class="ip-rank" style="color:var(--red)">'+(i+1)+'</div><div class="ip-name">'+p.name+'</div><div class="ip-bar-wrap"><div class="ip-bar" style="width:'+p.pct+'%;background:var(--red)"></div></div><div class="ip-val">'+p.orders+' sold</div><div class="ip-trend" style="color:var(--red)">'+p.trend+'</div></div>';
+  }).join('');
+
+  // REPEAT CUSTOMER FAVORITES
+  var rpt=[
+    {name:'Classic Burger',repeats:anRange==='today'?4:anRange==='week'?22:96,pct:'67%'},
+    {name:'Fresh Lemonade',repeats:anRange==='today'?3:anRange==='week'?18:82,pct:'58%'},
+    {name:'Wings Basket',repeats:anRange==='today'?3:anRange==='week'?16:71,pct:'55%'},
+    {name:'Burrito Bowl',repeats:anRange==='today'?2:anRange==='week'?12:54,pct:'42%'},
+    {name:'Pepperoni',repeats:anRange==='today'?2:anRange==='week'?10:48,pct:'38%'},
+  ];
+  document.getElementById('anRepeatDishes').innerHTML=rpt.map(function(p,i){
+    return '<div class="ip-row"><div class="ip-rank" style="color:var(--accent)">'+(i+1)+'</div><div class="ip-name">'+p.name+'</div><div class="ip-val">'+p.repeats+' reorders</div><div class="ip-trend" style="color:var(--accent)">'+p.pct+'</div></div>';
+  }).join('');
+
+  // REVENUE GENERATORS
+  var revItems=[
+    {name:'Classic Burger',rev:anRange==='today'?104:anRange==='week'?675:3040},
+    {name:'Margherita Pizza',rev:anRange==='today'?75:anRange==='week'?570:2519},
+    {name:'Wings Basket',rev:anRange==='today'?72:anRange==='week'?492:2182},
+    {name:'Burrito Bowl',rev:anRange==='today'?52:anRange==='week'?377:1663},
+    {name:'Fresh Lemonade',rev:anRange==='today'?20:anRange==='week'?170:778},
+  ];
+  document.getElementById('anRevItems').innerHTML=revItems.map(function(p,i){
+    return '<div class="an-pop-item"><div class="an-pop-rank" style="color:var(--green)">#'+(i+1)+'</div><div class="an-pop-name">'+p.name+'</div><div class="an-pop-count">$'+p.rev.toLocaleString()+'</div></div>';
+  }).join('');
+
+  // CUSTOMER INSIGHTS
+  var customers=[
+    {name:'Sarah M.',visits:anRange==='today'?1:anRange==='week'?3:12,spent:anRange==='today'?32:anRange==='week'?96:384,fav:'Classic Burger',diet:'GF',returning:true},
+    {name:'James K.',visits:anRange==='today'?1:anRange==='week'?2:8,spent:anRange==='today'?28:anRange==='week'?56:224,fav:'Wings Basket',diet:'',returning:true},
+    {name:'Maria L.',visits:anRange==='today'?1:anRange==='week'?4:15,spent:anRange==='today'?41:anRange==='week'?164:615,fav:'Burrito Bowl',diet:'Vegetarian',returning:true},
+    {name:'David R.',visits:anRange==='today'?1:anRange==='week'?1:3,spent:anRange==='today'?25:anRange==='week'?25:75,fav:'Pepperoni',diet:'',returning:false},
+    {name:'Aisha T.',visits:anRange==='today'?1:anRange==='week'?2:7,spent:anRange==='today'?19:anRange==='week'?38:133,fav:'Fresh Lemonade',diet:'Halal',returning:true},
+    {name:'Guest #847',visits:1,spent:15,fav:'Caesar Salad',diet:'',returning:false},
+  ];
+  document.getElementById('anCustomers').innerHTML=customers.map(function(c){
+    var initials=c.name.replace(/[^A-Z]/g,'').substring(0,2)||'G';
+    return '<div class="ci-card"><div class="ci-avatar">'+initials+'</div><div class="ci-info"><div class="ci-name">'+c.name+(c.returning?' <span style="color:var(--green);font-size:10px">&#x21BB; Returning</span>':'')+'</div><div class="ci-meta">Favorite: '+c.fav+(c.diet?' \u2022 '+c.diet:'')+'</div></div><div class="ci-stat"><div class="ci-stat-val">$'+c.spent+'</div><div class="ci-stat-label">'+c.visits+' visit'+(c.visits>1?'s':'')+'</div></div></div>';
+  }).join('');
+}
+
+// ===== QR CODES =====
+function generateQRSVG(text, size){
+  // Simple visual QR placeholder using SVG grid pattern
+  var s=size||120, cells=21, cs=s/cells;
+  var svg='<svg width="'+s+'" height="'+s+'" viewBox="0 0 '+s+' '+s+'" xmlns="http://www.w3.org/2000/svg">';
+  svg+='<rect width="'+s+'" height="'+s+'" fill="white"/>';
+  // Fixed pattern blocks (corner markers)
+  function marker(x,y){
+    svg+='<rect x="'+(x*cs)+'" y="'+(y*cs)+'" width="'+(7*cs)+'" height="'+(7*cs)+'" fill="black"/>';
+    svg+='<rect x="'+((x+1)*cs)+'" y="'+((y+1)*cs)+'" width="'+(5*cs)+'" height="'+(5*cs)+'" fill="white"/>';
+    svg+='<rect x="'+((x+2)*cs)+'" y="'+((y+2)*cs)+'" width="'+(3*cs)+'" height="'+(3*cs)+'" fill="black"/>';
+  }
+  marker(0,0);marker(14,0);marker(0,14);
+  // Generate pseudo-random data modules from text hash
+  var hash=0;
+  for(var i=0;i<text.length;i++){hash=((hash<<5)-hash)+text.charCodeAt(i);hash|=0;}
+  for(var r=0;r<cells;r++){
+    for(var c=0;c<cells;c++){
+      if((r<8&&c<8)||(r<8&&c>12)||(r>12&&c<8)) continue; // skip markers
+      var bit=((hash>>((r*cells+c)%31))&1);
+      if(((r+c+hash)%3===0)||bit){
+        svg+='<rect x="'+(c*cs)+'" y="'+(r*cs)+'" width="'+cs+'" height="'+cs+'" fill="black"/>';
+      }
+    }
+  }
+  svg+='</svg>';
+  return svg;
+}
+function renderQRCodes(){
+  var baseUrl='orderly-flax.vercel.app/r/state-of-mind/t/';
+  document.getElementById('qrGrid').innerHTML=tables.map(function(t){
+    var url=baseUrl+t.id;
+    var qr=generateQRSVG(url);
+    return '<div class="qr-card">'+
+      '<div class="qr-code">'+qr+'</div>'+
+      '<div class="qr-name">'+t.name+'</div>'+
+      '<div class="qr-url">'+url+'</div>'+
+      '<div class="qr-actions-row">'+
+        '<button class="qr-btn primary" onclick="copyQRUrl(\''+url+'\')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Copy</button>'+
+        '<button class="qr-btn"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>Print</button>'+
+      '</div></div>';
+  }).join('');
+}
+function copyQRUrl(url){
+  navigator.clipboard.writeText('https://'+url).catch(function(){});
+  // Visual feedback
+  var btn=event.currentTarget;
+  var orig=btn.innerHTML;
+  btn.innerHTML='Copied!';
+  btn.style.background='var(--green)';
+  btn.style.borderColor='var(--green)';
+  setTimeout(function(){btn.innerHTML=orig;btn.style.background='';btn.style.borderColor=''},1500);
+}
+function printAllQR(){alert('In production, this generates a PDF with all QR codes for printing.')}
+
+// ===== HISTORY =====
+var historyOrders=[
+  {id:1000,table:'Table 5',items:[{qty:1,name:'Pepperoni',price:15.99},{qty:1,name:'Caesar Salad',price:9.99},{qty:2,name:'Iced Coffee',price:5.49}],total:36.96,time:'8:12 PM',duration:'18m',status:'completed',method:'voice'},
+  {id:999,table:'Patio 1',items:[{qty:2,name:'Classic Burger',price:12.99},{qty:1,name:'Wings Basket',price:11.99},{qty:2,name:'Fresh Lemonade',price:4.99}],total:47.95,time:'7:48 PM',duration:'22m',status:'completed',method:'voice'},
+  {id:998,table:'Table 2',items:[{qty:1,name:'Burrito Bowl',price:12.99},{qty:1,name:'Loaded Nachos',price:10.99}],total:23.98,time:'7:31 PM',duration:'14m',status:'completed',method:'text'},
+  {id:997,table:'Bar 2',items:[{qty:1,name:'Mushroom Swiss',price:13.49},{qty:1,name:'Fresh Lemonade',price:4.99}],total:18.48,time:'7:15 PM',duration:'16m',status:'completed',method:'browse'},
+  {id:996,table:'Table 8',items:[{qty:1,name:'Margherita Pizza',price:14.99}],total:14.99,time:'6:52 PM',duration:'--',status:'cancelled',method:'voice'},
+  {id:995,table:'Table 3',items:[{qty:1,name:'Four Cheese Pizza',price:16.49},{qty:1,name:'Greek Salad',price:10.49},{qty:1,name:'Iced Coffee',price:5.49}],total:32.47,time:'6:40 PM',duration:'20m',status:'completed',method:'voice'},
+  {id:994,table:'Patio 2',items:[{qty:2,name:'Chicken Tacos',price:11.49},{qty:1,name:'Burrito Bowl',price:12.99}],total:35.97,time:'6:18 PM',duration:'19m',status:'completed',method:'voice'},
+  {id:993,table:'Table 1',items:[{qty:1,name:'BBQ Bacon Burger',price:14.99},{qty:1,name:'Mozzarella Sticks',price:8.99},{qty:2,name:'Fresh Lemonade',price:4.99}],total:33.96,time:'5:55 PM',duration:'17m',status:'completed',method:'text'},
+  {id:992,table:'Table 6',items:[{qty:1,name:'Classic Burger',price:12.99},{qty:1,name:'Wings Basket',price:11.99}],total:24.98,time:'5:30 PM',duration:'15m',status:'completed',method:'voice'},
+  {id:991,table:'Bar 1',items:[{qty:1,name:'Iced Coffee',price:5.49},{qty:1,name:'Mozzarella Sticks',price:8.99}],total:14.48,time:'5:12 PM',duration:'12m',status:'completed',method:'browse'},
+  {id:990,table:'Table 4',items:[{qty:2,name:'Pepperoni',price:15.99},{qty:1,name:'Loaded Nachos',price:10.99},{qty:3,name:'Fresh Lemonade',price:4.99}],total:57.94,time:'4:45 PM',duration:'24m',status:'completed',method:'voice'},
+  {id:989,table:'Table 7',items:[{qty:1,name:'Greek Salad',price:10.49}],total:10.49,time:'4:20 PM',duration:'--',status:'cancelled',method:'text'},
+];
+function renderHistory(){
+  var statusFilter=document.getElementById('histStatusFilter').value;
+  var searchQ=(document.getElementById('histSearch').value||'').toLowerCase();
+  var filtered=historyOrders.filter(function(o){
+    if(statusFilter!=='all'&&o.status!==statusFilter) return false;
+    if(searchQ){
+      var text=('#'+o.id+' '+o.table+' '+o.items.map(function(i){return i.name}).join(' ')).toLowerCase();
+      if(!text.includes(searchQ)) return false;
+    }
+    return true;
+  });
+  var completed=filtered.filter(function(o){return o.status==='completed'});
+  var totalRev=completed.reduce(function(a,o){return a+o.total},0);
+  document.getElementById('histTotalOrders').textContent=filtered.length;
+  document.getElementById('histTotalRev').textContent='$'+Math.round(totalRev).toLocaleString();
+  document.getElementById('histAvgTicket').textContent=completed.length?'$'+(totalRev/completed.length).toFixed(2):'--';
+  document.getElementById('histCompRate').textContent=filtered.length?Math.round(completed.length/filtered.length*100)+'%':'--';
+  document.getElementById('histBody').innerHTML=filtered.map(function(o){
+    var itemNames=o.items.map(function(i){return i.qty+'x '+i.name}).join(', ');
+    var short=itemNames.length>35?itemNames.substring(0,35)+'...':itemNames;
+    return '<tr data-id="'+o.id+'">'+
+      '<td style="font-weight:600">#'+o.id+'</td>'+
+      '<td>'+o.table+'</td>'+
+      '<td style="color:var(--text2)">'+short+'</td>'+
+      '<td style="font-weight:600">$'+o.total.toFixed(2)+'</td>'+
+      '<td style="color:var(--text3)">'+o.time+'</td>'+
+      '<td style="color:var(--text3)">'+o.duration+'</td>'+
+      '<td><span class="hist-status '+o.status+'">'+o.status.charAt(0).toUpperCase()+o.status.slice(1)+'</span></td>'+
+      '<td><span class="hist-expand" onclick="toggleHistDetail(this,'+o.id+')">Details</span></td>'+
+    '</tr>'+
+    '<tr class="hist-detail" id="hist-'+o.id+'"><td colspan="8" style="padding:12px 14px">'+
+      o.items.map(function(i){return'<div style="display:flex;justify-content:space-between;padding:3px 0"><span>'+i.qty+'x '+i.name+'</span><span style="color:var(--text3)">$'+(i.price*i.qty).toFixed(2)+'</span></div>'}).join('')+
+      '<div style="display:flex;justify-content:space-between;padding:6px 0 0;margin-top:6px;border-top:1px solid var(--border);font-weight:600"><span>Total</span><span style="color:var(--accent)">$'+o.total.toFixed(2)+'</span></div>'+
+      '<div style="margin-top:8px;font-size:11px;color:var(--text3)">Method: '+o.method+' | Duration: '+o.duration+'</div>'+
+    '</td></tr>';
+  }).join('');
+  document.getElementById('histCount').textContent='Showing '+filtered.length+' orders';
+}
+function toggleHistDetail(el,id){
+  var row=document.getElementById('hist-'+id);
+  if(row){
+    var isOpen=row.classList.contains('open');
+    row.classList.toggle('open');
+    row.style.display=isOpen?'none':'table-row';
+    el.textContent=isOpen?'Details':'Hide';
+  }
+}
+function filterHistory(){renderHistory();}
+function exportHistoryCSV(){
+  var csv='Order,Table,Items,Total,Time,Duration,Status,Method\n';
+  historyOrders.forEach(function(o){
+    var items=o.items.map(function(i){return i.qty+'x '+i.name}).join('; ');
+    csv+=o.id+',"'+o.table+'","'+items+'",$'+o.total.toFixed(2)+','+o.time+','+o.duration+','+o.status+','+o.method+'\n';
+  });
+  var blob=new Blob([csv],{type:'text/csv'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url;a.download='orderly_order_history.csv';a.click();
+  URL.revokeObjectURL(url);
+  showToast('CSV exported');
+}
+
+// ===== ACTION TOAST =====
+var toastTimer=null;
+function showToast(msg){
+  if(toastTimer)clearTimeout(toastTimer);
+  var t=document.getElementById('actionToast');
+  var txt=document.getElementById('atText');
+  txt.textContent=msg;
+  t.classList.remove('show');
+  requestAnimationFrame(function(){
+    t.classList.add('show');
+    toastTimer=setTimeout(function(){t.classList.remove('show')},2500);
+  });
+}
+
+// ===== CONFIRM DIALOG =====
+var confirmCallback=null;
+function showConfirm(title,msg,actionLabel,callback){
+  document.getElementById('confirmTitle').textContent=title;
+  document.getElementById('confirmMsg').innerHTML=msg.replace(/\n/g,'<br>');
+  var btn=document.getElementById('confirmAction');
+  btn.textContent=actionLabel;
+  btn.className='confirm-btn '+((actionLabel==='Delete'||actionLabel==='Decline'||actionLabel.indexOf('86')>-1)?'danger':'primary');
+  confirmCallback=callback;
+  btn.onclick=function(){
+    closeConfirm();
+    if(confirmCallback)confirmCallback();
+    confirmCallback=null;
+  };
+  document.getElementById('confirmOverlay').classList.add('open');
+}
+function closeConfirm(){
+  document.getElementById('confirmOverlay').classList.remove('open');
+  confirmCallback=null;
+}
+
+// ===== PRINT RECEIPT =====
+function printReceipt(id){
+  var o=orders.find(function(x){return x.id===id});
+  if(!o) return;
+  var total=o.items.reduce(function(a,it){return a+it.price*it.qty},0);
+  var w=window.open('','_blank','width=300,height=500');
+  w.document.write('<html><head><title>Order #'+o.id+'</title><style>body{font-family:monospace;font-size:12px;padding:20px;max-width:280px}h2{text-align:center;margin:0 0 4px}hr{border:none;border-top:1px dashed #999;margin:8px 0}.row{display:flex;justify-content:space-between;padding:2px 0}.total{font-weight:bold;font-size:14px;margin-top:4px}.center{text-align:center}</style></head><body>');
+  w.document.write('<h2>'+document.getElementById('sbName').textContent+'</h2>');
+  w.document.write('<p class="center">Order #'+o.id+' \u2014 '+o.table+'</p><hr>');
+  o.items.forEach(function(it){
+    w.document.write('<div class="row"><span>'+it.qty+'x '+it.name+'</span><span>$'+(it.price*it.qty).toFixed(2)+'</span></div>');
+    if(it.mod) w.document.write('<div style="color:#666;padding-left:20px">'+it.mod+'</div>');
+  });
+  w.document.write('<hr><div class="row total"><span>Total</span><span>$'+total.toFixed(2)+'</span></div>');
+  if(o.special) w.document.write('<hr><div style="color:red;text-align:center">!! '+o.special+' !!</div>');
+  w.document.write('<hr><p class="center" style="color:#999">'+new Date().toLocaleString()+'</p>');
+  w.document.write('</body></html>');
+  w.document.close();
+  setTimeout(function(){w.print()},300);
+  showToast('Receipt opened');
+}
+
+// ===== TABLE MANAGEMENT =====
+function addTable(){
+  var name=prompt('Enter table name (e.g. Table 9, Patio 3, Bar 3):');
+  if(!name||!name.trim()) return;
+  name=name.trim();
+  var id=name.replace(/\s+/g,'').substring(0,3).toUpperCase()+String(tables.length+1).padStart(2,'0');
+  tables.push({id:id,name:name,status:'empty',order:null,guests:0});
+  renderTables();renderQRCodes();
+  showToast(name+' added');
+}
+function removeTable(tid){
+  var t=tables.find(function(x){return x.id===tid});
+  if(!t) return;
+  if(t.status!=='empty'){showToast('Cannot remove occupied table');return;}
+  showConfirm('Remove '+t.name+'?','This will delete the table and its QR code.','Remove',function(){
+    tables=tables.filter(function(x){return x.id!==tid});
+    renderTables();renderQRCodes();
+    showToast(t.name+' removed');
+  });
+}
+
+// ===== THEME TOGGLE =====
+function setDashTheme(mode){
+  document.body.classList.toggle('light',mode==='light');
+  document.querySelectorAll('.tb-theme-opt').forEach(function(o){o.classList.remove('active')});
+  event.currentTarget.classList.add('active');
+  showToast(mode==='light'?'Light mode':'Dark mode');
+}
+
+// ===== PAGE LOADING STATES =====
+function showPageLoading(pageId){
+  var page=document.getElementById('page-'+pageId);
+  if(!page)return;
+  page.classList.add('page-loading');
+  setTimeout(function(){page.classList.remove('page-loading')},300);
+}
+
+// ===== LIVE DEMO MODE =====
+var demoInterval=null;
+var demoStep=0;
+function toggleDemoMode(){
+  if(demoInterval){
+    stopDemoMode();
+  } else {
+    startDemoMode();
+  }
+}
+function startDemoMode(){
+  var btn=document.getElementById('demoBtn');
+  btn.classList.add('demo-active');
+  btn.style.background='var(--accent)';
+  btn.style.color='white';
+  btn.style.borderColor='var(--accent)';
+  document.getElementById('demoBtnText').textContent='Stop';
+  showToast('Demo mode started — simulating dinner rush');
+  demoStep=0;
+
+  function demoTick(){
+    demoStep++;
+    // Simulate new order every 3rd tick
+    if(demoStep%3===1) simulateOrder();
+    // Advance a random non-served order every tick
+    var active=orders.filter(function(o){return o.status!=='served'});
+    if(active.length>1){
+      var idx=Math.floor(Math.random()*active.length);
+      advanceOrder(active[idx].id);
+    }
+  }
+  demoTick();
+  demoInterval=setInterval(demoTick,2500);
+}
+function stopDemoMode(){
+  if(demoInterval){clearInterval(demoInterval);demoInterval=null;}
+  var btn=document.getElementById('demoBtn');
+  btn.classList.remove('demo-active');
+  btn.style.background='';
+  btn.style.color='';
+  btn.style.borderColor='';
+  document.getElementById('demoBtnText').textContent='Demo';
+  showToast('Demo mode stopped');
+}
+
+// ===== MOBILE ORDERS VIEW =====
+function renderMobileOrders(){
+  var container=document.getElementById('mobileOrders');
+  if(!container) return;
+  var activeOrders=orders.filter(function(o){return o.status!=='served'});
+  // Sort by urgency: new first, then by time descending
+  var statusOrder={new:0,accepted:1,preparing:2,ready:3};
+  activeOrders.sort(function(a,b){
+    if(statusOrder[a.status]!==statusOrder[b.status]) return statusOrder[a.status]-statusOrder[b.status];
+    return b.time-a.time;
+  });
+
+  if(!activeOrders.length){
+    container.innerHTML='<div style="text-align:center;padding:40px;color:var(--text3)">No active orders<div style="margin-top:8px;font-size:12px;color:var(--accent);cursor:pointer" onclick="simulateOrder()">Tap to simulate</div></div>';
+    return;
+  }
+
+  var statusColors={new:'var(--accent)',accepted:'var(--yellow)',preparing:'var(--blue)',ready:'var(--green)'};
+  container.innerHTML=activeOrders.map(function(o){
+    var act=getNextAction(o.status);
+    var tc=getTimeClass(o.time);
+    var itemsText=o.items.map(function(it){return it.qty+'x '+it.name}).join(', ');
+    var html='<div class="mo-card" onclick="openOrderDetail('+o.id+')">';
+    html+='<div class="mo-status-bar" style="background:'+statusColors[o.status]+'"></div>';
+    html+='<div class="mo-content">';
+    html+='<div class="mo-top"><div class="mo-table">'+o.table+' <span style="font-size:11px;color:var(--text3);font-weight:400">#'+o.id+'</span></div><div class="mo-time '+tc+'">'+o.time+'m</div></div>';
+    if(o.special) html+='<div style="font-size:11px;color:var(--yellow);margin-bottom:6px">⚠ '+o.special+'</div>';
+    html+='<div class="mo-items-text">'+itemsText+'</div>';
+    html+='<div class="mo-actions">';
+    if(act) html+='<button class="mo-btn primary" onclick="event.stopPropagation();advanceOrder('+o.id+')">'+act.label+'</button>';
+    if(o.status==='new') html+='<button class="mo-btn secondary" onclick="event.stopPropagation();cancelOrder('+o.id+')">Decline</button>';
+    html+='</div></div></div>';
+    return html;
+  }).join('');
+}
+
+// ===== KEYBOARD SHORTCUTS =====
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){
+    closeConfirm();closeOrderDetail();closeTableDetail();closeMenuModal();
+    if(demoInterval) stopDemoMode();
+    return;
+  }
+  if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA') return;
+  if(e.key==='n'||e.key==='N') simulateOrder();
+  if(e.key==='d'||e.key==='D') toggleDemoMode();
+});
+
+// ===== INIT =====
+renderOrders();
+render86();
+renderMenuCats();
+renderMenuTable();
+renderTables();
+renderAnalytics();
+renderQRCodes();
+renderHistory();
+</script>
+</body>
+</html>
